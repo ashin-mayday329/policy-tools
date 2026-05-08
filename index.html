@@ -37,6 +37,19 @@
     }
     .hero h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: .5px; }
     .hero p { margin: 0; opacity: .95; font-size: 14px; }
+    .hero-tools { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-tools a {
+      display: inline-block;
+      text-decoration: none;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.36);
+      color: #fff;
+      padding: 7px 12px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .hero-tools a:hover { background: rgba(255,255,255,.28); }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -115,6 +128,9 @@
     <header class="hero">
       <h1>园区企业走访服务台账</h1>
       <p>园区企业服务工作记录工具（内部使用）</p>
+      <div class="hero-tools">
+        <a href="policy-screen.html">政策申报初筛工具</a>
+      </div>
     </header>
     <section class="card">
       <h2 class="section-title">走访信息录入</h2>
