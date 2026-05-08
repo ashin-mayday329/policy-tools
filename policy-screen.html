@@ -160,6 +160,7 @@
         <button id="copyBtn" type="button">复制纯文本报告</button>
         <button id="wordBtn" type="button">下载Word</button>
         <button id="printBtn" type="button">打印/另存为PDF</button>
+        <button id="saveRecordBtn" type="button" style="background:#1f5fbf">保存到我的记录</button>
         <button id="clearBtn" type="button">清空表单</button>
         <a class="btn" style="background:#6b7f9d" href="index.html">返回走访总结工具</a>
       </div>
@@ -335,6 +336,33 @@ $('wordBtn').addEventListener('click', ()=>{
  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
 });
 $('printBtn').addEventListener('click', ()=>{ if(!lastPlainText.trim()){alert('请先生成初筛报告。');return;} window.print(); });
+$('saveRecordBtn').addEventListener('click', saveCurrentRecord);
+
+function getCurrentUserValid(){
+ const users = JSON.parse(localStorage.getItem('pt_users_v1') || '{}');
+ const current = localStorage.getItem('pt_current_user_v1') || '';
+ return current && users[current] ? current : '';
+}
+function collectFormData(){
+ const data={};
+ document.querySelectorAll('input,select,textarea').forEach(el=>{ if(el.id) data[el.id]=el.value||''; });
+ return data;
+}
+function saveCurrentRecord(){
+ const user=getCurrentUserValid();
+ if(!user){ alert('请先登录'); window.location.replace('login.html'); return; }
+ if(!lastReportData||!lastPlainText.trim()){ alert('请先生成初筛报告。'); return; }
+ const company=($('company').value||'').trim();
+ if(!company){ alert('请先填写企业名称'); return; }
+ const key=`pt_policy_records_${user}`;
+ const now=Date.now();
+ const record={ id:`rec_${now}_${Math.random().toString(36).slice(2,8)}`, company, district:lastReportData.district||'未填写', industry:lastReportData.industry||'未填写', mainBiz:lastReportData.mainBiz||'未填写', overall:lastReportData.overall||'未填写', skRes:lastReportData.skRes||'未填写', gkRes:lastReportData.gkRes||'未填写', hqRes:lastReportData.hqRes||'未填写', scRes:lastReportData.scRes||'未填写', rawFormData:collectFormData(), reportText:lastPlainText, createdAt:now, updatedAt:now };
+ const list=JSON.parse(localStorage.getItem(key)||'[]');
+ list.unshift(record);
+ localStorage.setItem(key,JSON.stringify(list));
+ alert('已保存到我的记录');
+}
+
 $('clearBtn').addEventListener('click',()=>{document.querySelectorAll('input').forEach(i=>i.value='');document.querySelectorAll('select').forEach(s=>s.selectedIndex=0);$('report').textContent='（点击“生成初筛报告”后会显示在这里）';lastPlainText='';lastReportData=null;});
 </script>
 </body>
