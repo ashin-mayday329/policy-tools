@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>宁波企业科技政策申报初筛工具</title>
+  <style>
+    :root{--bg:#edf3fc;--card:#fff;--text:#1b2f4e;--muted:#5f7190;--primary:#1f5fbf;--primary2:#114b9d;--line:#d8e3f5}
+    *{box-sizing:border-box} body{margin:0;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1100px;margin:20px auto;padding:0 14px 30px}
+    .hero{background:linear-gradient(135deg,#1552ac,#2672d8);color:#fff;padding:18px 20px;border-radius:14px;box-shadow:0 8px 24px rgba(20,60,120,.16)}
+    .hero h1{margin:0 0 6px;font-size:26px}.hero p{margin:0;opacity:.95;font-size:14px}
+    .card{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 8px 24px rgba(15,45,90,.06)}
+    h2{margin:0 0 12px;font-size:18px;color:#123f80}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}
+    label{display:block;margin:0 0 6px;font-weight:600;font-size:14px}input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfdff}
+    textarea{min-height:76px;resize:vertical}.actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+    button,a.btn{border:none;padding:10px 16px;border-radius:10px;color:#fff;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
+    #genBtn{background:linear-gradient(135deg,var(--primary),var(--primary2))}#copyBtn{background:#0d86ad}#clearBtn{background:#6b7f9d}
+    .result{margin-top:14px;border:1px solid #b8cff2;background:#f4f8ff;border-radius:12px;padding:14px}
+    #report{white-space:pre-wrap;background:#fff;border:1px solid #d5e2f7;border-radius:10px;padding:12px;min-height:160px;margin:0}
+    .tip{margin-top:14px;color:#2f4668;font-size:13px;background:#f7fbff;border:1px dashed #b7ccef;border-radius:10px;padding:10px}
+    @media (max-width:760px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>宁波企业科技政策申报初筛工具</h1>
+      <p>适用地区：宁波市｜用于园区服务人员初筛辅助判断（非正式认定）</p>
+    </section>
+
+    <section class="card">
+      <h2>一、企业基础信息</h2>
+      <div class="grid">
+        <div><label>企业名称</label><input id="company"></div>
+        <div><label>注册地址</label><input id="district"></div>
+        <div><label>成立日期</label><input id="founded" type="date"></div>
+        <div><label>是否独立法人</label><select id="independent"><option>是</option><option>否</option></select></div>
+        <div><label>所属行业</label><input id="industry"></div>
+        <div><label>主营产品或服务</label><input id="mainBiz"></div>
+        <div><label>是否属于禁止、限制、淘汰类行业</label><select id="forbidden"><option>否</option><option>是</option></select></div>
+        <div><label>是否被列入经营异常或严重失信</label><select id="dishonest"><option>否</option><option>是</option></select></div>
+        <div class="full"><label>近一年是否发生重大安全、重大质量、严重环保违法问题</label><select id="majorRisk"><option>否</option><option>是</option></select></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>二、规模数据</h2>
+      <div class="grid">
+        <div><label>职工总数</label><input id="staffTotal" type="number" min="0"></div>
+        <div><label>上年度销售收入（万元）</label><input id="sales" type="number" min="0"></div>
+        <div><label>上年度资产总额（万元）</label><input id="assets" type="number" min="0"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>三、研发与人员</h2>
+      <div class="grid">
+        <div><label>科技人员人数</label><input id="techStaff" type="number" min="0"></div>
+        <div><label>上年度研发费用（万元）</label><input id="rdCost" type="number" min="0"></div>
+        <div><label>上年度成本费用总额（万元）</label><input id="totalCost" type="number" min="0"></div>
+        <div><label>是否有研发项目立项</label><select id="rdProject"><option>有</option><option>无</option></select></div>
+        <div class="full"><label>是否有研发辅助账或研发费用归集资料</label><select id="rdAccount"><option>有</option><option>无</option></select></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>四、知识产权与成果</h2>
+      <div class="grid">
+        <div><label>发明专利数量</label><input id="patent1" type="number" min="0"></div>
+        <div><label>实用新型数量</label><input id="patent2" type="number" min="0"></div>
+        <div><label>软件著作权数量</label><input id="soft" type="number" min="0"></div>
+        <div><label>是否有商标、标准、科技成果或专有技术</label><select id="otherIp"><option>有</option><option>无</option></select></div>
+        <div class="full"><label>知识产权是否与主营产品或服务相关</label><select id="ipRelated"><option>是</option><option>否</option></select></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>五、高企相关</h2>
+      <div class="grid">
+        <div><label>高新技术产品或服务收入（万元）</label><input id="highIncome" type="number" min="0"></div>
+        <div><label>总收入（万元）</label><input id="totalIncome" type="number" min="0"></div>
+        <div><label>主要技术是否属于国家重点支持的高新技术领域</label><select id="highField"><option>是</option><option>否</option></select></div>
+        <div><label>是否有科技成果转化材料</label><select id="transfer"><option>有</option><option>无</option></select></div>
+        <div><label>是否有研发组织管理制度</label><select id="rdManage"><option>有</option><option>无</option></select></div>
+        <div><label>是否有近三年财务报表或审计基础</label><select id="finance3y"><option>有</option><option>无</option></select></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>六、市创相关</h2>
+      <div class="grid">
+        <div><label>是否成立5年内</label><select id="within5"><option>是</option><option>否</option></select></div>
+        <div><label>是否处于种子期或初创期</label><select id="seed"><option>是</option><option>否</option></select></div>
+        <div><label>企业负责人是否为创业团队主要成员</label><select id="founderLead"><option>是</option><option>否</option></select></div>
+        <div><label>是否拥有核心技术、核心知识产权或创新商业模式</label><select id="coreInnovation"><option>是</option><option>否</option></select></div>
+        <div class="full"><label>是否有融资、孵化器、人才团队、科技金融等情况</label><select id="supporting"><option>有</option><option>无</option></select></div>
+      </div>
+      <div class="actions">
+        <button id="genBtn">生成初筛报告</button>
+        <button id="copyBtn" type="button">复制报告</button>
+        <button id="clearBtn" type="button">清空表单</button>
+        <a class="btn" style="background:#6b7f9d" href="index.html">返回走访总结工具</a>
+      </div>
+      <div class="result">
+        <h2>初筛报告</h2>
+        <p id="report">（点击“生成初筛报告”后会显示在这里）</p>
+      </div>
+      <p class="tip">本工具仅作园区服务初筛参考，正式申报以当年官方通知和主管部门审核为准。</p>
+    </section>
+  </main>
+<script>
+const $ = (id)=>document.getElementById(id);
+const num = (id)=>Number($(id).value||0);
+const yes = (id,v='是')=>$(id).value===v;
+function ratio(a,b){return b>0?a/b:0}
+function pct(x){return (x*100).toFixed(1)+'%'}
+
+function evaluate(){
+ const company=$('company').value.trim()||'该企业';
+ const staff=num('staffTotal'), tech=num('techStaff'), sales=num('sales'), assets=num('assets');
+ const rd=num('rdCost'), totalCost=num('totalCost');
+ const p1=num('patent1'), p2=num('patent2'), soft=num('soft');
+ const total2=p2+soft;
+ const techRatio=ratio(tech,staff), rdSales=ratio(rd,sales), rdCostRatio=ratio(rd,totalCost);
+ const majorBad = yes('majorRisk')||yes('dishonest')||yes('forbidden');
+ const foundedDate = $('founded').value?new Date($('founded').value):null;
+ const years = foundedDate ? (Date.now()-foundedDate.getTime())/(365.25*24*3600*1000) : 0;
+
+ // 省科小
+ let skFits=[], skRisks=[], skAdv=[];
+ if(years>=1) skFits.push('注册成立满一年以上'); else skRisks.push('成立年限不足一年或未填写');
+ if(yes('independent')) skFits.push('独立法人、产权与经营主体较清晰'); else skRisks.push('独立法人条件不足');
+ if(p1+total2>0 || yes('otherIp')) skFits.push('具备知识产权或专有技术基础'); else skRisks.push('知识产权支撑偏弱');
+ if(techRatio>=0.1) skFits.push('科技人员占比达到10%以上（'+pct(techRatio)+'）'); else skRisks.push('科技人员占比不足10%（'+pct(techRatio)+'）');
+ if(rd>0) skFits.push('有研发投入'); else skRisks.push('研发投入数据缺失或为0');
+ if(!majorBad) skFits.push('未见重大失信/安全/质量/环保问题'); else skRisks.push('存在合规风险记录');
+ let skRes = skFits.length>=5?'建议申报':(skFits.length>=3?'可培育后申报':'暂不建议');
+ skAdv.push('完善研发台账、知识产权与成果材料，形成可核验佐证。');
+
+ // 国科小
+ let gkHard = !majorBad && staff<=500 && sales<=20000 && assets<=20000;
+ let techScore = techRatio>=0.3?20:techRatio>=0.25?16:techRatio>=0.2?12:techRatio>=0.15?8:techRatio>=0.1?4:0;
+ const rdBySales = rdSales>=0.06?50:rdSales>=0.05?40:rdSales>=0.04?30:rdSales>=0.03?20:rdSales>=0.02?10:0;
+ const rdByCost = rdCostRatio>=0.3?50:rdCostRatio>=0.25?40:rdCostRatio>=0.2?30:rdCostRatio>=0.15?20:rdCostRatio>=0.1?10:0;
+ let rdScore = Math.max(rdBySales, rdByCost);
+ let ipScore = p1>=1?30:total2>=4?24:total2===3?18:total2===2?12:total2===1?6:0;
+ let totalScore = techScore+rdScore+ipScore;
+ let gkRes = !gkHard?'暂不建议':(totalScore>=60 && techScore>0?'建议申报':(totalScore>=55?'可培育后申报':'暂不建议'));
+
+ // 高企
+ let hqFits=0, hqHardFail=false, hqRisk=[];
+ if(years>=1) hqFits++; else {hqHardFail=true; hqRisk.push('成立年限不足一年');}
+ if((p1+total2>0||yes('otherIp'))&&yes('ipRelated')) hqFits++; else hqRisk.push('核心知识产权与主营关联不足');
+ if(yes('highField')) hqFits++; else hqRisk.push('技术领域匹配度不足');
+ if(techRatio>=0.1) hqFits++; else hqRisk.push('科技人员占比不足10%');
+ const rdReq = sales<=5000?0.05:(sales<=20000?0.04:0.03);
+ if(rdSales>=rdReq) hqFits++; else hqRisk.push('研发费用占销售收入比例不足');
+ if(ratio(num('highIncome'), num('totalIncome'))>=0.6) hqFits++; else hqRisk.push('高新技术收入占比不足60%');
+ if(!majorBad) hqFits++; else {hqHardFail=true; hqRisk.push('存在重大合规风险');}
+ if(yes('transfer')) hqFits++; if(yes('rdManage')) hqFits++; if(yes('finance3y')) hqFits++;
+ const hqRes = hqHardFail?'暂不建议':(hqFits>=8?'建议申报':(hqFits>=6?'建议培育后申报':'暂不建议'));
+
+ // 市创
+ let scScore=0; if(yes('within5')) scScore++; if(yes('seed')) scScore++; if(yes('founderLead')) scScore++; if(yes('coreInnovation')) scScore++; if(techRatio>=0.1) scScore++; if(yes('supporting','有')) scScore++;
+ const scRes = scScore>=5?'建议关注市创/市级科技型中小企业方向':'需结合当年宁波市及区县通知进一步确认';
+
+ const overall = [skRes,gkRes,hqRes].filter(x=>x==='建议申报').length>=2?'优先申报':([skRes,gkRes,hqRes].includes('可培育后申报')||hqRes==='建议培育后申报'?'培育后申报':'暂不建议');
+
+ const material = [
+ '营业执照、法人及企业基本信息材料','近一年财务数据（销售收入、资产总额、成本费用）','研发费用辅助账/归集表、研发项目立项资料',
+ '知识产权证书（发明、实用新型、软著等）及与产品关联说明','高新技术产品（服务）收入说明及证明材料','近三年财务报表/审计基础资料（如有）',
+ '合规证明或承诺（无重大失信、安全、质量、环保违法）'
+ ];
+
+ const text = `${company}科技政策申报初筛报告（宁波）\n\n综合建议：${overall}\n\n`+
+ `一、省科小：${skRes}\n符合点：${skFits.join('；')||'暂无明显符合点'}\n风险点：${skRisks.join('；')||'暂无明显风险点'}\n补强建议：${skAdv.join('；')}\n\n`+
+ `二、国科小：${gkRes}\n符合点：硬性条件${gkHard?'基本满足':'存在缺口'}；科技人员得分${techScore}分；研发投入得分${rdScore}分；科技成果得分${ipScore}分；总分约${totalScore}分。\n风险点：${gkHard?'主要关注分值提升':'人员规模/收入/资产或合规条件存在不满足项'}。\n补强建议：提升科技人员占比、加大研发投入归集、补充Ⅰ类或Ⅱ类知识产权。\n\n`+
+ `三、高企：${hqRes}\n符合点：当前符合项约${hqFits}项。\n风险点：${hqRisk.join('；')||'暂无明显硬性短板'}。\n补强建议：围绕知识产权与主营关联、研发费率、高新收入占比和制度材料进行系统补齐。\n\n`+
+ `四、市创：${scRes}\n符合点：市创相关指标符合约${scScore}项。\n风险点：若核心技术、团队或成长性材料不足，评估结论可能波动。\n补强建议：突出“核心技术+应用场景+成长潜力”，同步完善融资、人才和孵化支撑材料。\n\n`+
+ `建议准备材料清单：\n- ${material.join('\n- ')}\n\n`+
+ `可直接发给企业的服务建议：\n贵司当前具备一定科技政策申报基础，建议近期先按“基础合规—研发归集—知识产权—财务指标”四条主线完善佐证材料。园区可协助开展一对一政策匹配和材料预审，待当年官方通知发布后再按主管部门口径进行正式申报。\n\n`+
+ `【提示】本工具仅作园区服务初筛参考，正式申报以当年官方通知和主管部门审核为准。`;
+ $('report').textContent=text;
+}
+$('genBtn').addEventListener('click',evaluate);
+$('copyBtn').addEventListener('click', async ()=>{
+ const text=$('report').textContent.trim(); if(text.startsWith('（点击')){alert('请先生成初筛报告。');return;}
+ try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);}else{const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}alert('初筛报告已复制。');}catch{alert('复制失败，请手动复制。');}
+});
+$('clearBtn').addEventListener('click',()=>{document.querySelectorAll('input').forEach(i=>i.value='');document.querySelectorAll('select').forEach(s=>s.selectedIndex=0);$('report').textContent='（点击“生成初筛报告”后会显示在这里）';});
+</script>
+</body>
+</html>
