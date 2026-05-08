@@ -45,6 +45,8 @@
     .profile-trigger{display:flex; align-items:center; gap:8px; border:none; background:transparent; color:#fff; cursor:pointer; padding:0;}
     .profile-trigger:hover{opacity:.92;}
     .avatar{width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#d4e4ff,#b8d2fa); color:#174999; display:flex; align-items:center; justify-content:center; font-weight:700; border:1px solid rgba(255,255,255,.6);}
+    .avatar.has-image{padding:0; overflow:hidden; color:transparent;}
+    .avatar.has-image img{width:100%; height:100%; object-fit:cover; display:block;}
     .nickname{font-size:14px; font-weight:700; color:#f4f8ff;}
     .auth-btn{background:#fff; color:#1b56ae; border:none; border-radius:8px; padding:6px 10px; font-size:13px; font-weight:700; cursor:pointer;}
     .auth-btn.ghost{background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.45);}
@@ -59,6 +61,9 @@
     .auth-tab.active{background:linear-gradient(135deg, var(--primary), var(--primary-dark)); color:#fff; border-color:transparent;}
     .hidden{display:none;}
     .form-note{font-size:12px;color:#5f6f89;margin-top:8px;}
+    .profile-avatar-wrap{display:flex; align-items:center; gap:12px; margin-bottom:10px;}
+    .profile-avatar-preview{width:56px; height:56px; border-radius:50%; border:1px solid var(--border); background:linear-gradient(135deg,#eaf1ff,#d4e6ff); display:flex; align-items:center; justify-content:center; overflow:hidden; color:#1b56ae; font-weight:700;}
+    .profile-avatar-preview img{width:100%; height:100%; object-fit:cover; display:block;}
     .hero-tools { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
     .hero-tools a {
       display: inline-block;
@@ -231,6 +236,14 @@
     <section class="auth-panel">
       <h3 style="margin:0 0 12px;color:#123f80;">个人资料</h3>
       <form id="profileForm">
+        <div class="profile-avatar-wrap">
+          <span id="profileAvatarPreview" class="profile-avatar-preview">人</span>
+          <div style="flex:1;">
+            <label for="profileAvatarInput">头像上传</label>
+            <input id="profileAvatarInput" type="file" accept="image/*" />
+            <p class="form-note" style="margin:6px 0 0;">建议上传 2MB 以内图片，系统将自动压缩并保存到本地。</p>
+          </div>
+        </div>
         <div><label for="profileNickname">昵称</label><input id="profileNickname" required /></div>
         <div class="actions">
           <button type="submit">保存昵称</button>
@@ -253,6 +266,10 @@
     const userNicknameEl = document.getElementById('userNickname');
     const authModal = document.getElementById('authModal');
     const profileModal = document.getElementById('profileModal');
+    const userAvatarEl = document.getElementById('userAvatar');
+    const profileAvatarPreviewEl = document.getElementById('profileAvatarPreview');
+    const profileAvatarInputEl = document.getElementById('profileAvatarInput');
+    let pendingAvatarDataUrl = '';
 
     const loadUsers = () => JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}');
     const saveUsers = (users) => localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
@@ -271,6 +288,42 @@
       return btoa(unescape(encodeURIComponent(password)));
     }
 
+    const renderAvatar = (container, nickname, avatarDataUrl) => {
+      if (avatarDataUrl) {
+        container.classList.add('has-image');
+        container.innerHTML = '<img alt="用户头像" src="">';
+        container.querySelector('img').src = avatarDataUrl;
+      } else {
+        container.classList.remove('has-image');
+        container.textContent = (nickname && nickname[0] ? nickname[0] : DEFAULT_AVATAR).toUpperCase();
+      }
+    };
+
+    function closeProfileModal() {
+      profileModal.classList.remove('show');
+      profileModal.setAttribute('aria-hidden', 'true');
+      profileAvatarInputEl.value = '';
+      pendingAvatarDataUrl = '';
+    }
+
+    async function compressImageToDataUrl(file, maxWidth = 320, quality = 0.82) {
+      const imageUrl = URL.createObjectURL(file);
+      const img = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = imageUrl;
+      });
+      const scale = Math.min(1, maxWidth / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(imageUrl);
+      return canvas.toDataURL('image/jpeg', quality);
+    }
+
     function refreshAuthUI() {
       const username = getCurrentUser();
       const users = loadUsers();
@@ -279,7 +332,7 @@
         authGuest.classList.add('hidden');
         authUser.classList.remove('hidden');
         userNicknameEl.textContent = nickname;
-        document.getElementById('userAvatar').textContent = (nickname[0] || DEFAULT_AVATAR).toUpperCase();
+        renderAvatar(userAvatarEl, nickname, users[username].avatarDataUrl || '');
       } else {
         setCurrentUser('');
         authGuest.classList.remove('hidden');
@@ -310,6 +363,9 @@
       const users = loadUsers();
       if (!username || !users[username]) return;
       document.getElementById('profileNickname').value = users[username].nickname || username;
+      pendingAvatarDataUrl = users[username].avatarDataUrl || '';
+      renderAvatar(profileAvatarPreviewEl, users[username].nickname || username, pendingAvatarDataUrl);
+      profileAvatarInputEl.value = '';
       profileModal.classList.add('show');
       profileModal.setAttribute('aria-hidden', 'false');
     });
@@ -319,14 +375,26 @@
     document.getElementById('closeModalBtn').addEventListener('click', hideModal);
     document.getElementById('closeModalBtn2').addEventListener('click', hideModal);
     authModal.addEventListener('click', (e) => { if (e.target === authModal) hideModal(); });
-    document.getElementById('closeProfileBtn').addEventListener('click', () => {
-      profileModal.classList.remove('show');
-      profileModal.setAttribute('aria-hidden', 'true');
-    });
+    document.getElementById('closeProfileBtn').addEventListener('click', closeProfileModal);
     profileModal.addEventListener('click', (e) => {
       if (e.target === profileModal) {
-        profileModal.classList.remove('show');
-        profileModal.setAttribute('aria-hidden', 'true');
+        closeProfileModal();
+      }
+    });
+    profileAvatarInputEl.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        alert('请选择图片文件。');
+        e.target.value = '';
+        return;
+      }
+      try {
+        pendingAvatarDataUrl = await compressImageToDataUrl(file, file.size > 2 * 1024 * 1024 ? 260 : 320, file.size > 2 * 1024 * 1024 ? 0.75 : 0.82);
+        const nickname = document.getElementById('profileNickname').value.trim() || getCurrentUser() || DEFAULT_AVATAR;
+        renderAvatar(profileAvatarPreviewEl, nickname, pendingAvatarDataUrl);
+      } catch (error) {
+        alert('头像处理失败，请更换图片重试。');
       }
     });
 
@@ -375,11 +443,11 @@
       const nickname = document.getElementById('profileNickname').value.trim();
       if (!nickname) return alert('昵称不能为空。');
       users[username].nickname = nickname;
+      users[username].avatarDataUrl = pendingAvatarDataUrl || users[username].avatarDataUrl || '';
       saveUsers(users);
       refreshAuthUI();
-      profileModal.classList.remove('show');
-      profileModal.setAttribute('aria-hidden', 'true');
-      alert('昵称已更新。');
+      closeProfileModal();
+      alert('个人资料已更新。');
     });
 
     document.getElementById('generateBtn').addEventListener('click', () => {
