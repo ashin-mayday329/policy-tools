@@ -50,6 +50,12 @@
     .nickname{font-size:14px; font-weight:700; color:#f4f8ff;}
     .auth-btn{background:#fff; color:#1b56ae; border:none; border-radius:8px; padding:6px 10px; font-size:13px; font-weight:700; cursor:pointer;}
     .auth-btn.ghost{background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.45);}
+    .user-pill{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.45);backdrop-filter:blur(6px)}
+    .auth-btn.subtle{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.45);color:#fff;}
+    .auth-btn.subtle:hover,.auth-btn.ghost:hover{background:rgba(255,255,255,.32);}
+    .profile-modal{background:rgba(9,27,58,.35);}
+    #profileForm .actions button[type="submit"]{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;}
+
     .notice {margin: 12px 0 14px; background:#fff9e7; border:1px solid #f2ddb0; color:#785d1d; border-radius:12px; padding:10px 12px; font-size:13px;}
     .auth-modal{position:fixed; inset:0; background:rgba(9,27,58,.45); display:none; align-items:center; justify-content:center; padding:16px; z-index:20;}
     .auth-modal.show{display:flex;}
@@ -161,9 +167,10 @@
           <p>企业走访记录 · 政策申报初筛 · 服务台账管理</p>
           <div class="hero-tools">
             <a href="policy-screen.html">政策申报初筛工具</a>
+            <a href="records.html">我的查询记录</a>
           </div>
         </div>
-        <div class="auth-box">
+        <div class="auth-box user-pill">
           <div id="authGuest" class="auth-row">
             <span class="auth-text">未登录</span>
             <button id="openLoginBtn" class="auth-btn" type="button">登录 / 注册</button>
@@ -174,8 +181,8 @@
                 <span id="userAvatar" class="avatar">U</span>
                 <span id="userNickname" class="nickname">-</span>
               </button>
-              <button id="profileEntryBtn" class="auth-btn" type="button">个人资料</button>
-              <button id="logoutBtn" class="auth-btn ghost" type="button">退出登录</button>
+              <button id="profileEntryBtn" class="auth-btn ghost" type="button">个人资料</button>
+              <button id="logoutBtn" class="auth-btn subtle" type="button">退出登录</button>
             </div>
           </div>
         </div>
@@ -235,19 +242,19 @@
 
   <div id="profileModal" class="profile-modal" aria-hidden="true">
     <section class="auth-panel">
-      <h3 style="margin:0 0 12px;color:#123f80;">个人资料</h3>
+      <h3 style="margin:0 0 14px;color:#123f80;font-size:20px;">个人资料</h3>
       <form id="profileForm">
         <div class="profile-avatar-wrap">
           <span id="profileAvatarPreview" class="profile-avatar-preview">人</span>
           <div style="flex:1;">
             <label for="profileAvatarInput">头像上传</label>
             <input id="profileAvatarInput" type="file" accept="image/*" />
-            <p class="form-note" style="margin:6px 0 0;">建议上传 2MB 以内图片，系统将自动压缩并保存到本地。</p>
+            <p class="form-note" style="margin:6px 0 0;">建议上传 2MB 以内图片，上传后会即时预览并保存到本地。</p>
           </div>
         </div>
         <div><label for="profileNickname">昵称</label><input id="profileNickname" required /></div>
         <div class="actions">
-          <button type="submit">保存昵称</button>
+          <button type="submit">保存修改</button>
           <button type="button" id="closeProfileBtn" class="auth-btn ghost">取消</button>
         </div>
       </form>
@@ -457,7 +464,7 @@
       saveUsers(users);
       refreshAuthUI();
       closeProfileModal();
-      alert('个人资料已更新。');
+      alert('保存成功，个人资料已更新。');
     });
 
     document.getElementById('generateBtn').addEventListener('click', () => {
