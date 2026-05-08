@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>园区企业走访总结生成器</title>
+  <title>园区企业服务工具箱</title>
   <style>
     :root {
       --bg: #eef3fb;
@@ -158,7 +158,7 @@
       <div class="hero-top">
         <div>
           <h1>园区企业走访服务台账</h1>
-          <p>园区企业服务工作记录工具（内部使用）</p>
+          <p>企业走访记录 · 政策申报初筛 · 服务台账管理</p>
           <div class="hero-tools">
             <a href="policy-screen.html">政策申报初筛工具</a>
           </div>
@@ -174,13 +174,14 @@
                 <span id="userAvatar" class="avatar">U</span>
                 <span id="userNickname" class="nickname">-</span>
               </button>
+              <button id="profileEntryBtn" class="auth-btn" type="button">个人资料</button>
               <button id="logoutBtn" class="auth-btn ghost" type="button">退出登录</button>
             </div>
           </div>
         </div>
       </div>
     </header>
-    <div class="notice">提示：本版本账号数据仅保存在当前浏览器本地（localStorage），更换设备或清理缓存后可能丢失，请勿录入敏感企业信息。</div>
+    <div class="notice">提示：本系统为本地演示版，账号和数据仅保存在当前浏览器本地，请勿录入敏感企业信息。</div>
     <section class="card">
       <h2 class="section-title">走访信息录入</h2>
 
@@ -279,6 +280,13 @@
       else localStorage.removeItem(STORAGE_CURRENT);
     };
 
+    const usersInit = loadUsers();
+    const currentInit = getCurrentUser();
+    if (!currentInit || !usersInit[currentInit]) {
+      setCurrentUser('');
+      window.location.replace('login.html');
+    }
+
     async function hashPassword(password) {
       if (window.crypto && window.crypto.subtle) {
         const msgUint8 = new TextEncoder().encode(password);
@@ -358,7 +366,7 @@
     }
 
     document.getElementById('openLoginBtn').addEventListener('click', () => showModal('login'));
-    document.getElementById('openProfileBtn').addEventListener('click', () => {
+    function openProfile() {
       const username = getCurrentUser();
       const users = loadUsers();
       if (!username || !users[username]) return;
@@ -368,8 +376,10 @@
       profileAvatarInputEl.value = '';
       profileModal.classList.add('show');
       profileModal.setAttribute('aria-hidden', 'false');
-    });
-    document.getElementById('logoutBtn').addEventListener('click', () => { setCurrentUser(''); refreshAuthUI(); });
+    }
+    document.getElementById('openProfileBtn').addEventListener('click', openProfile);
+    document.getElementById('profileEntryBtn').addEventListener('click', openProfile);
+    document.getElementById('logoutBtn').addEventListener('click', () => { setCurrentUser(''); window.location.replace('login.html'); });
     document.getElementById('tabLogin').addEventListener('click', () => setTab('login'));
     document.getElementById('tabRegister').addEventListener('click', () => setTab('register'));
     document.getElementById('closeModalBtn').addEventListener('click', hideModal);

@@ -35,6 +35,17 @@
   </style>
 </head>
 <body>
+<script>
+(function(){
+  const users = JSON.parse(localStorage.getItem('pt_users_v1') || '{}');
+  const current = localStorage.getItem('pt_current_user_v1') || '';
+  if (!current || !users[current]) {
+    localStorage.removeItem('pt_current_user_v1');
+    window.location.replace('login.html');
+  }
+})();
+</script>
+
   <main class="wrap">
     <section class="hero">
       <h1>企业科技政策申报初筛工具</h1>
@@ -160,7 +171,7 @@
         <h2>初筛报告</h2>
         <div id="report" class="report-empty">（点击“生成初筛报告”后会显示在这里）</div>
       </div>
-      <p class="tip">本工具仅作园区服务初筛参考，正式申报以当年官方通知和主管部门审核为准。</p>
+      <p class="tip">本系统为本地演示版，账号和数据仅保存在当前浏览器本地，请勿录入敏感企业信息。</p>
     </section>
   </main>
 <script>
@@ -270,7 +281,7 @@ function evaluate(){
    </section>
    <section class="report-section"><h3>六、建议准备材料</h3><ol class="num-list">${material.map(x=>`<li>${x}</li>`).join('')}</ol></section>
    <section class="report-section"><h3>七、园区服务建议</h3><p class="kv">建议园区后续围绕“政策匹配、材料预审、研发归集、知识产权布局、财务指标完善”等方面协助企业做好申报准备。</p><p class="kv">经办园区：甬港现代科技园｜经办人：${operator}</p></section>
-   <p class="report-tip">【提示】本工具仅作园区服务初筛参考，正式申报以当年官方通知和主管部门审核为准。</p>
+   <p class="report-tip">【提示】本系统为本地演示版，账号和数据仅保存在当前浏览器本地，请勿录入敏感企业信息。</p>
  </article>`;
  $('report').innerHTML = reportHtml;
  lastReportData = {
@@ -281,7 +292,7 @@ function evaluate(){
    scRes, scFits: toList(scFits), scRisks: toList(scRisks), scAdv: toList(scAdv),
    material, operator
  };
- lastPlainText = `【宁波企业科技政策申报初筛报告】\n\n企业名称：${txt(company)}\n注册地址：${district}\n所属行业：${txt(industryFinal)}\n主营产品或服务：${txt(mainBizFinal)}\n\n一、综合建议\n根据企业当前填报信息，建议优先关注：${overall}。\n其中，省科小（${skRes}）、国科小（${gkRes}）、高企（${hqRes}）、市创（${scRes}）。\n\n二、省科小初筛\n初筛结论：${skRes}\n符合点：\n${listText(skFits)}\n风险点：\n${listText(skRisks)}\n补强建议：\n${listText(skAdv)}\n\n三、国科小初筛\n初筛结论：${gkRes}\n预估得分：${totalScore}分\n符合点：\n${listText(gkFits)}\n风险点：\n${listText(gkRisks)}\n补强建议：\n${listText(gkAdv)}\n\n四、高企初筛\n初筛结论：${hqRes}\n符合点：\n${listText(hqFitsText)}\n风险点：\n${listText(hqRisk)}\n补强建议：\n${listText(hqAdv)}\n\n五、市创初筛\n初筛结论：${scRes}\n符合点：\n${listText(scFits)}\n风险点：\n${listText(scRisks)}\n补强建议：\n${listText(scAdv)}\n\n六、建议准备材料\n${material.map((m,i)=>`${i+1}. ${m}`).join('\n')}\n\n七、园区服务建议\n建议园区后续围绕“政策匹配、材料预审、研发归集、知识产权布局、财务指标完善”等方面协助企业做好申报准备。\n经办园区：甬港现代科技园\n经办人：${operator}\n\n【提示】本工具仅作园区服务初筛参考，正式申报以当年官方通知和主管部门审核为准。`;
+ lastPlainText = `【宁波企业科技政策申报初筛报告】\n\n企业名称：${txt(company)}\n注册地址：${district}\n所属行业：${txt(industryFinal)}\n主营产品或服务：${txt(mainBizFinal)}\n\n一、综合建议\n根据企业当前填报信息，建议优先关注：${overall}。\n其中，省科小（${skRes}）、国科小（${gkRes}）、高企（${hqRes}）、市创（${scRes}）。\n\n二、省科小初筛\n初筛结论：${skRes}\n符合点：\n${listText(skFits)}\n风险点：\n${listText(skRisks)}\n补强建议：\n${listText(skAdv)}\n\n三、国科小初筛\n初筛结论：${gkRes}\n预估得分：${totalScore}分\n符合点：\n${listText(gkFits)}\n风险点：\n${listText(gkRisks)}\n补强建议：\n${listText(gkAdv)}\n\n四、高企初筛\n初筛结论：${hqRes}\n符合点：\n${listText(hqFitsText)}\n风险点：\n${listText(hqRisk)}\n补强建议：\n${listText(hqAdv)}\n\n五、市创初筛\n初筛结论：${scRes}\n符合点：\n${listText(scFits)}\n风险点：\n${listText(scRisks)}\n补强建议：\n${listText(scAdv)}\n\n六、建议准备材料\n${material.map((m,i)=>`${i+1}. ${m}`).join('\n')}\n\n七、园区服务建议\n建议园区后续围绕“政策匹配、材料预审、研发归集、知识产权布局、财务指标完善”等方面协助企业做好申报准备。\n经办园区：甬港现代科技园\n经办人：${operator}\n\n【提示】本系统为本地演示版，账号和数据仅保存在当前浏览器本地，请勿录入敏感企业信息。`;
 }
 $('genBtn').addEventListener('click',evaluate);
 $('copyBtn').addEventListener('click', async ()=>{
@@ -309,7 +320,7 @@ $('wordBtn').addEventListener('click', ()=>{
  <h2>六、建议准备材料</h2>${toOl(d.material)}
  <h2>七、园区服务建议</h2><p>建议园区后续围绕政策匹配、材料预审、研发归集、知识产权布局、财务指标完善等方面，协助企业做好申报准备。</p>
  <p>经办园区：甬港现代科技园</p><p>经办人：${d.operator}</p>
- <h2>【提示】</h2><p>本工具仅作园区服务初筛参考，正式申报以当年官方通知和主管部门审核为准。</p>`;
+ <h2>【提示】</h2><p>本系统为本地演示版，账号和数据仅保存在当前浏览器本地，请勿录入敏感企业信息。</p>`;
  const html = `<!doctype html><html><head><meta charset=\"UTF-8\"><style>
  @page { size: A4; margin: 2.2cm 2cm; }
  body{font-family:\"Microsoft YaHei\",\"SimSun\",sans-serif;line-height:1.8;color:#222;padding:0;margin:0}
