@@ -33,11 +33,47 @@
       <h2>一、企业基础信息</h2>
       <div class="grid">
         <div><label>企业名称</label><input id="company"></div>
-        <div><label>注册区县</label><input id="district"></div>
+        <div><label>注册地址</label><input id="district"></div>
         <div><label>成立日期</label><input id="founded" type="date"></div>
         <div><label>是否独立法人</label><select id="independent"><option>是</option><option>否</option></select></div>
-        <div><label>所属行业</label><input id="industry"></div>
-        <div><label>主营产品或服务</label><input id="mainBiz"></div>
+        <div>
+          <label>所属行业</label>
+          <select id="industry">
+            <option value="">请选择行业</option>
+            <optgroup label="制造业与工业">
+            <option>新一代信息技术</option><option>高端装备制造</option><option>新材料</option><option>新能源与节能环保</option>
+            <option>生物医药与医疗器械</option><option>汽车及零部件</option><option>智能家电</option><option>工业互联网</option>
+            <option>软件与信息服务</option><option>人工智能</option><option>集成电路</option><option>电子信息制造</option>
+            <option>光伏与储能</option><option>机器人与自动化</option><option>化工与新型化工材料</option><option>纺织服装</option>
+            <option>文体用品与消费品制造</option><option>金属制品与机械加工</option><option>模具与精密制造</option><option>食品加工</option>
+            </optgroup>
+            <optgroup label="服务业与其他">
+            <option>跨境电商与贸易服务</option><option>现代物流</option><option>科技服务业</option>
+            <option>农业科技</option><option>海洋经济相关</option><option>文化创意</option><option>其他</option>
+            </optgroup>
+          </select>
+          <input id="industryCustom" placeholder="如选择“其他”，请填写具体行业（可选）" style="margin-top:8px;">
+        </div>
+        <div>
+          <label>主营产品或服务</label>
+          <select id="mainBiz">
+            <option value="">请选择主营产品或服务</option>
+            <optgroup label="数字与软件">
+            <option>工业软件开发与实施服务</option><option>企业数字化解决方案</option><option>SaaS平台服务</option><option>AI算法与模型服务</option>
+            <option>嵌入式系统开发</option><option>物联网终端与系统集成</option><option>芯片设计与封测配套</option><option>电子元器件研发制造</option>
+            </optgroup>
+            <optgroup label="制造与能源">
+            <option>光伏电站投资、建设与运维</option><option>储能系统集成</option><option>节能改造与合同能源管理</option><option>机器人本体与系统集成</option>
+            <option>智能制造产线改造</option><option>精密零部件加工</option><option>高端装备研发制造</option><option>新材料研发与销售</option>
+            </optgroup>
+            <optgroup label="医疗、服务与贸易">
+            <option>检验检测与认证服务</option><option>技术咨询与技术转移服务</option><option>医疗器械研发生产</option><option>生物技术研发服务</option>
+            <option>汽车零部件制造</option><option>跨境电商运营服务</option><option>供应链与仓储物流服务</option><option>品牌设计与数字营销服务</option>
+            <option>其他（请在报告中补充说明）</option>
+            </optgroup>
+          </select>
+          <input id="mainBizCustom" placeholder="如选择“其他”，请填写具体主营产品或服务（可选）" style="margin-top:8px;">
+        </div>
         <div><label>是否属于禁止、限制、淘汰类行业</label><select id="forbidden"><option>否</option><option>是</option></select></div>
         <div><label>是否被列入经营异常或严重失信</label><select id="dishonest"><option>否</option><option>是</option></select></div>
         <div class="full"><label>近一年是否发生重大安全、重大质量、严重环保违法问题</label><select id="majorRisk"><option>否</option><option>是</option></select></div>
@@ -48,8 +84,8 @@
       <h2>二、规模数据</h2>
       <div class="grid">
         <div><label>职工总数</label><input id="staffTotal" type="number" min="0"></div>
-        <div><label>上年度销售收入（元）</label><input id="sales" type="number" min="0"></div>
-        <div><label>上年度资产总额（元）</label><input id="assets" type="number" min="0"></div>
+        <div><label>上年度销售收入（万元）</label><input id="sales" type="number" min="0"></div>
+        <div><label>上年度资产总额（万元）</label><input id="assets" type="number" min="0"></div>
       </div>
     </section>
 
@@ -57,8 +93,8 @@
       <h2>三、研发与人员</h2>
       <div class="grid">
         <div><label>科技人员人数</label><input id="techStaff" type="number" min="0"></div>
-        <div><label>上年度研发费用（元）</label><input id="rdCost" type="number" min="0"></div>
-        <div><label>上年度成本费用总额（元）</label><input id="totalCost" type="number" min="0"></div>
+        <div><label>上年度研发费用（万元）</label><input id="rdCost" type="number" min="0"></div>
+        <div><label>上年度成本费用总额（万元）</label><input id="totalCost" type="number" min="0"></div>
         <div><label>是否有研发项目立项</label><select id="rdProject"><option>有</option><option>无</option></select></div>
         <div class="full"><label>是否有研发辅助账或研发费用归集资料</label><select id="rdAccount"><option>有</option><option>无</option></select></div>
       </div>
@@ -78,8 +114,8 @@
     <section class="card">
       <h2>五、高企相关</h2>
       <div class="grid">
-        <div><label>高新技术产品或服务收入（元）</label><input id="highIncome" type="number" min="0"></div>
-        <div><label>总收入（元）</label><input id="totalIncome" type="number" min="0"></div>
+        <div><label>高新技术产品或服务收入（万元）</label><input id="highIncome" type="number" min="0"></div>
+        <div><label>总收入（万元）</label><input id="totalIncome" type="number" min="0"></div>
         <div><label>主要技术是否属于国家重点支持的高新技术领域</label><select id="highField"><option>是</option><option>否</option></select></div>
         <div><label>是否有科技成果转化材料</label><select id="transfer"><option>有</option><option>无</option></select></div>
         <div><label>是否有研发组织管理制度</label><select id="rdManage"><option>有</option><option>无</option></select></div>
@@ -118,6 +154,12 @@ function pct(x){return (x*100).toFixed(1)+'%'}
 
 function evaluate(){
  const company=$('company').value.trim()||'该企业';
+ const industry = ($('industry').value||'').trim();
+ const industryCustom = $('industryCustom').value.trim();
+ const mainBiz = ($('mainBiz').value||'').trim();
+ const mainBizCustom = $('mainBizCustom').value.trim();
+ const industryFinal = industry.includes('其他') && industryCustom ? industryCustom : (industry || '未填写');
+ const mainBizFinal = mainBiz.includes('其他') && mainBizCustom ? mainBizCustom : (mainBiz || '未填写');
  const staff=num('staffTotal'), tech=num('techStaff'), sales=num('sales'), assets=num('assets');
  const rd=num('rdCost'), totalCost=num('totalCost');
  const p1=num('patent1'), p2=num('patent2'), soft=num('soft');
@@ -139,7 +181,7 @@ function evaluate(){
  skAdv.push('完善研发台账、知识产权与成果材料，形成可核验佐证。');
 
  // 国科小
- let gkHard = !majorBad && staff<=500 && sales<=200000000 && assets<=200000000;
+ let gkHard = !majorBad && staff<=500 && sales<=20000 && assets<=20000;
  let techScore = techRatio>=0.3?20:techRatio>=0.25?16:techRatio>=0.2?12:techRatio>=0.15?8:techRatio>=0.1?4:0;
  const rdBySales = rdSales>=0.06?50:rdSales>=0.05?40:rdSales>=0.04?30:rdSales>=0.03?20:rdSales>=0.02?10:0;
  const rdByCost = rdCostRatio>=0.3?50:rdCostRatio>=0.25?40:rdCostRatio>=0.2?30:rdCostRatio>=0.15?20:rdCostRatio>=0.1?10:0;
@@ -154,7 +196,7 @@ function evaluate(){
  if((p1+total2>0||yes('otherIp'))&&yes('ipRelated')) hqFits++; else hqRisk.push('核心知识产权与主营关联不足');
  if(yes('highField')) hqFits++; else hqRisk.push('技术领域匹配度不足');
  if(techRatio>=0.1) hqFits++; else hqRisk.push('科技人员占比不足10%');
- const rdReq = sales<=50000000?0.05:(sales<=200000000?0.04:0.03);
+ const rdReq = sales<=5000?0.05:(sales<=20000?0.04:0.03);
  if(rdSales>=rdReq) hqFits++; else hqRisk.push('研发费用占销售收入比例不足');
  if(ratio(num('highIncome'), num('totalIncome'))>=0.6) hqFits++; else hqRisk.push('高新技术收入占比不足60%');
  if(!majorBad) hqFits++; else {hqHardFail=true; hqRisk.push('存在重大合规风险');}
@@ -173,7 +215,8 @@ function evaluate(){
  '合规证明或承诺（无重大失信、安全、质量、环保违法）'
  ];
 
- const text = `${company}科技政策申报初筛报告（宁波）\n\n综合建议：${overall}\n\n`+
+ const text = `${company}科技政策申报初筛报告（宁波）\n`+
+ `所属行业：${industryFinal}\n主营产品或服务：${mainBizFinal}\n\n综合建议：${overall}\n\n`+
  `一、省科小：${skRes}\n符合点：${skFits.join('；')||'暂无明显符合点'}\n风险点：${skRisks.join('；')||'暂无明显风险点'}\n补强建议：${skAdv.join('；')}\n\n`+
  `二、国科小：${gkRes}\n符合点：硬性条件${gkHard?'基本满足':'存在缺口'}；科技人员得分${techScore}分；研发投入得分${rdScore}分；科技成果得分${ipScore}分；总分约${totalScore}分。\n风险点：${gkHard?'主要关注分值提升':'人员规模/收入/资产或合规条件存在不满足项'}。\n补强建议：提升科技人员占比、加大研发投入归集、补充Ⅰ类或Ⅱ类知识产权。\n\n`+
  `三、高企：${hqRes}\n符合点：当前符合项约${hqFits}项。\n风险点：${hqRisk.join('；')||'暂无明显硬性短板'}。\n补强建议：围绕知识产权与主营关联、研发费率、高新收入占比和制度材料进行系统补齐。\n\n`+
