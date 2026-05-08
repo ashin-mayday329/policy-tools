@@ -96,8 +96,21 @@
         alert('请先生成走访总结，再复制。');
         return;
       }
-      await navigator.clipboard.writeText(text);
-      alert('走访总结已复制，可直接粘贴到台账。');
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const temp = document.createElement('textarea');
+          temp.value = text;
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand('copy');
+          document.body.removeChild(temp);
+        }
+        alert('走访总结已复制，可直接粘贴到台账。');
+      } catch (error) {
+        alert('复制失败，请手动复制下方总结内容。');
+      }
     });
 
     document.getElementById('clearBtn').addEventListener('click', () => {
