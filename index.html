@@ -37,6 +37,21 @@
     }
     .hero h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: .5px; }
     .hero p { margin: 0; opacity: .95; font-size: 14px; }
+    .hero-top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .auth-box{ background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.35); border-radius:12px; padding:10px 12px; min-width:260px;}
+    .auth-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+    .auth-text{font-size:13px; margin-bottom:8px; color:#f1f6ff;}
+    .auth-btn{background:#fff; color:#1b56ae; border:none; border-radius:8px; padding:6px 10px; font-size:13px; font-weight:700; cursor:pointer;}
+    .auth-btn.ghost{background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.45);}
+    .notice {margin: 12px 0 14px; background:#fff9e7; border:1px solid #f2ddb0; color:#785d1d; border-radius:12px; padding:10px 12px; font-size:13px;}
+    .auth-modal{position:fixed; inset:0; background:rgba(9,27,58,.45); display:none; align-items:center; justify-content:center; padding:16px; z-index:20;}
+    .auth-modal.show{display:flex;}
+    .auth-panel{width:min(460px,100%); background:#fff; border-radius:14px; border:1px solid var(--border); box-shadow:var(--shadow); padding:18px;}
+    .auth-tabs{display:flex; gap:8px; margin-bottom:12px;}
+    .auth-tab{flex:1; border:1px solid var(--border); background:#f6f9ff; color:#27476b; border-radius:8px; padding:8px; font-weight:700; cursor:pointer;}
+    .auth-tab.active{background:linear-gradient(135deg, var(--primary), var(--primary-dark)); color:#fff; border-color:transparent;}
+    .hidden{display:none;}
+    .form-note{font-size:12px;color:#5f6f89;margin-top:8px;}
     .hero-tools { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
     .hero-tools a {
       display: inline-block;
@@ -119,6 +134,8 @@
       .grid { grid-template-columns: 1fr; }
       .full { grid-column: auto; }
       .hero h1 { font-size: 24px; }
+      .hero-top { flex-direction:column; }
+      .auth-box { width:100%; min-width:0; }
       .container { margin-top: 18px; }
     }
   </style>
@@ -126,12 +143,27 @@
 <body>
   <main class="container">
     <header class="hero">
-      <h1>园区企业走访服务台账</h1>
-      <p>园区企业服务工作记录工具（内部使用）</p>
-      <div class="hero-tools">
-        <a href="policy-screen.html">政策申报初筛工具</a>
+      <div class="hero-top">
+        <div>
+          <h1>园区企业走访服务台账</h1>
+          <p>园区企业服务工作记录工具（内部使用）</p>
+          <div class="hero-tools">
+            <a href="policy-screen.html">政策申报初筛工具</a>
+          </div>
+        </div>
+        <div class="auth-box">
+          <div id="authGuest" class="auth-row">
+            <span class="auth-text">未登录</span>
+            <button id="openLoginBtn" class="auth-btn" type="button">登录 / 注册</button>
+          </div>
+          <div id="authUser" class="hidden">
+            <div class="auth-text">当前账号：<strong id="userNickname">-</strong></div>
+            <button id="logoutBtn" class="auth-btn ghost" type="button">退出登录</button>
+          </div>
+        </div>
       </div>
     </header>
+    <div class="notice">提示：本版本账号数据仅保存在当前浏览器本地（localStorage），更换设备或清理缓存后可能丢失，请勿录入敏感企业信息。</div>
     <section class="card">
       <h2 class="section-title">走访信息录入</h2>
 
@@ -160,10 +192,132 @@
     </section>
   </main>
 
+  <div id="authModal" class="auth-modal" aria-hidden="true">
+    <section class="auth-panel">
+      <div class="auth-tabs">
+        <button id="tabLogin" class="auth-tab active" type="button">登录</button>
+        <button id="tabRegister" class="auth-tab" type="button">注册</button>
+      </div>
+      <form id="loginForm">
+        <div><label for="loginUsername">账号</label><input id="loginUsername" required /></div>
+        <div><label for="loginPassword">密码</label><input id="loginPassword" type="password" required /></div>
+        <div class="actions"><button type="submit" id="loginSubmit">立即登录</button><button type="button" id="closeModalBtn" class="auth-btn ghost">取消</button></div>
+      </form>
+      <form id="registerForm" class="hidden">
+        <div><label for="regUsername">账号</label><input id="regUsername" required /></div>
+        <div><label for="regNickname">昵称</label><input id="regNickname" required /></div>
+        <div><label for="regPassword">密码</label><input id="regPassword" type="password" required /></div>
+        <div><label for="regConfirmPassword">确认密码</label><input id="regConfirmPassword" type="password" required /></div>
+        <div class="actions"><button type="submit" id="registerSubmit">注册并登录</button><button type="button" id="closeModalBtn2" class="auth-btn ghost">取消</button></div>
+        <p class="form-note">密码将使用浏览器加密哈希后保存（本地版，仅用于基础防明文）。</p>
+      </form>
+    </section>
+  </div>
+
   <script>
     const getValue = (id) => document.getElementById(id).value.trim();
     const summaryEl = document.getElementById('summary');
     const fieldIds = ['company','visitStaff','contact','phone','address','basic','needs','solution'];
+
+    const STORAGE_USERS = 'pt_users_v1';
+    const STORAGE_CURRENT = 'pt_current_user_v1';
+    const authGuest = document.getElementById('authGuest');
+    const authUser = document.getElementById('authUser');
+    const userNicknameEl = document.getElementById('userNickname');
+    const authModal = document.getElementById('authModal');
+
+    const loadUsers = () => JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}');
+    const saveUsers = (users) => localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
+    const getCurrentUser = () => localStorage.getItem(STORAGE_CURRENT) || '';
+    const setCurrentUser = (username) => {
+      if (username) localStorage.setItem(STORAGE_CURRENT, username);
+      else localStorage.removeItem(STORAGE_CURRENT);
+    };
+
+    async function hashPassword(password) {
+      if (window.crypto && window.crypto.subtle) {
+        const msgUint8 = new TextEncoder().encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      return btoa(unescape(encodeURIComponent(password)));
+    }
+
+    function refreshAuthUI() {
+      const username = getCurrentUser();
+      const users = loadUsers();
+      if (username && users[username]) {
+        authGuest.classList.add('hidden');
+        authUser.classList.remove('hidden');
+        userNicknameEl.textContent = users[username].nickname || username;
+      } else {
+        setCurrentUser('');
+        authGuest.classList.remove('hidden');
+        authUser.classList.add('hidden');
+      }
+    }
+
+    function showModal(tab = 'login') {
+      authModal.classList.add('show');
+      authModal.setAttribute('aria-hidden', 'false');
+      setTab(tab);
+    }
+    function hideModal() {
+      authModal.classList.remove('show');
+      authModal.setAttribute('aria-hidden', 'true');
+    }
+    function setTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('tabLogin').classList.toggle('active', isLogin);
+      document.getElementById('tabRegister').classList.toggle('active', !isLogin);
+      document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
+      document.getElementById('registerForm').classList.toggle('hidden', isLogin);
+    }
+
+    document.getElementById('openLoginBtn').addEventListener('click', () => showModal('login'));
+    document.getElementById('logoutBtn').addEventListener('click', () => { setCurrentUser(''); refreshAuthUI(); });
+    document.getElementById('tabLogin').addEventListener('click', () => setTab('login'));
+    document.getElementById('tabRegister').addEventListener('click', () => setTab('register'));
+    document.getElementById('closeModalBtn').addEventListener('click', hideModal);
+    document.getElementById('closeModalBtn2').addEventListener('click', hideModal);
+    authModal.addEventListener('click', (e) => { if (e.target === authModal) hideModal(); });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('regUsername').value.trim();
+      const nickname = document.getElementById('regNickname').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const confirm = document.getElementById('regConfirmPassword').value;
+      if (!username || !nickname || !password) return alert('请完整填写注册信息。');
+      if (password !== confirm) return alert('两次输入的密码不一致。');
+      const users = loadUsers();
+      if (users[username]) return alert('该账号已存在，请更换账号。');
+      users[username] = { nickname, passwordHash: await hashPassword(password), createdAt: Date.now() };
+      saveUsers(users);
+      setCurrentUser(username);
+      refreshAuthUI();
+      hideModal();
+      e.target.reset();
+      alert('注册成功，已自动登录。');
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const users = loadUsers();
+      const user = users[username];
+      if (!user) return alert('账号不存在，请先注册。');
+      const passwordHash = await hashPassword(password);
+      if (passwordHash !== user.passwordHash) return alert('密码错误，请重试。');
+      setCurrentUser(username);
+      refreshAuthUI();
+      hideModal();
+      e.target.reset();
+      alert('登录成功。');
+    });
+
+    refreshAuthUI();
 
     document.getElementById('generateBtn').addEventListener('click', () => {
       const company = getValue('company') || '某企业';
