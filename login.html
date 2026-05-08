@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>园区企业服务工具箱 - 登录</title>
+<style>
+:root{--bg:#eaf1fc;--card:#fff;--text:#1d2f4d;--primary:#1f5fbf;--primary2:#154d9f;--line:#d3e1f4}
+*{box-sizing:border-box}body{margin:0;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(145deg,#f4f8ff,#eaf1fc);color:var(--text)}
+.page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.layout{width:min(960px,100%);display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+.brand,.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 32px rgba(15,40,80,.12)}
+.brand{padding:34px;background:linear-gradient(140deg,#1e5cba,#2b78d8);color:#fff}
+.brand h1{margin:0 0 12px;font-size:32px}.brand p{margin:0;opacity:.95;line-height:1.8}
+.panel{padding:24px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}.tab{flex:1;border:1px solid var(--line);background:#f3f7ff;padding:9px;border-radius:10px;cursor:pointer;font-weight:700}.tab.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-color:transparent}
+label{display:block;margin:10px 0 6px;font-weight:600;font-size:14px}input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px}
+button{width:100%;margin-top:14px;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;font-weight:700;cursor:pointer}
+.tip{margin-top:10px;color:#4f6584;font-size:13px}.warn{margin-top:12px;font-size:13px;padding:10px;border-radius:10px;background:#fff8e8;border:1px solid #f2ddb0;color:#7a5b17}
+.hidden{display:none}@media(max-width:820px){.layout{grid-template-columns:1fr}.brand h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="page"><div class="layout"><section class="brand"><h1>园区企业服务工具箱</h1><p>企业走访记录 · 政策申报初筛 · 服务台账管理</p><p class="warn">本系统为本地演示版，账号和数据仅保存在当前浏览器本地，请勿录入敏感企业信息。</p></section>
+<section class="panel"><div class="tabs"><button id="tabLogin" class="tab active" type="button">登录</button><button id="tabRegister" class="tab" type="button">注册</button></div>
+<form id="loginForm"><label>账号</label><input id="loginUsername" required><label>密码</label><input id="loginPassword" type="password" required><button type="submit">登录并进入系统</button><div id="firstTip" class="tip hidden">首次使用请先注册账号。</div></form>
+<form id="registerForm" class="hidden"><label>账号</label><input id="regUsername" required><label>密码</label><input id="regPassword" type="password" required><label>确认密码</label><input id="regConfirmPassword" type="password" required><label>昵称</label><input id="regNickname" required><button type="submit">注册并登录</button></form></section></div></div>
+<script>
+const STORAGE_USERS='pt_users_v1',STORAGE_CURRENT='pt_current_user_v1';
+const loadUsers=()=>JSON.parse(localStorage.getItem(STORAGE_USERS)||'{}');
+const saveUsers=(u)=>localStorage.setItem(STORAGE_USERS,JSON.stringify(u));
+const getCurrentUser=()=>localStorage.getItem(STORAGE_CURRENT)||'';
+const setCurrentUser=(u)=>u?localStorage.setItem(STORAGE_CURRENT,u):localStorage.removeItem(STORAGE_CURRENT);
+async function hashPassword(password){if(window.crypto&&window.crypto.subtle){const m=new TextEncoder().encode(password);const h=await crypto.subtle.digest('SHA-256',m);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('')}return btoa(unescape(encodeURIComponent(password)))}
+const users=loadUsers();if(getCurrentUser()&&users[getCurrentUser()]) window.location.replace('index.html');
+if(!Object.keys(users).length) document.getElementById('firstTip').classList.remove('hidden');
+const setTab=(isLogin)=>{tabLogin.classList.toggle('active',isLogin);tabRegister.classList.toggle('active',!isLogin);loginForm.classList.toggle('hidden',!isLogin);registerForm.classList.toggle('hidden',isLogin)};
+tabLogin.onclick=()=>setTab(true);tabRegister.onclick=()=>setTab(false);
+loginForm.onsubmit=async(e)=>{e.preventDefault();const u=loginUsername.value.trim(),p=loginPassword.value;const us=loadUsers(),user=us[u];if(!user)return alert('账号不存在，请先注册。');if(await hashPassword(p)!==user.passwordHash)return alert('密码错误，请重试。');setCurrentUser(u);window.location.href='index.html';};
+registerForm.onsubmit=async(e)=>{e.preventDefault();const u=regUsername.value.trim(),p=regPassword.value,c=regConfirmPassword.value,n=regNickname.value.trim();if(!u||!p||!n)return alert('请完整填写注册信息。');if(p!==c)return alert('两次密码不一致。');const us=loadUsers();if(us[u])return alert('账号已存在，请更换账号。');us[u]={nickname:n,passwordHash:await hashPassword(p),createdAt:Date.now(),avatarDataUrl:''};saveUsers(us);setCurrentUser(u);window.location.href='index.html';};
+</script>
+</body></html>
