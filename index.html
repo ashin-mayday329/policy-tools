@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>园区企业走访总结生成器</title>
+  <style>
+    :root { --bg:#f5f7fb; --card:#fff; --text:#1f2a37; --muted:#5b6472; --primary:#1664d8; --secondary:#0f766e; --light:#64748b; --border:#d8e0ea; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+    .container { max-width:920px; margin:32px auto; padding:0 16px 24px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:0 4px 18px rgba(15,23,42,.06); padding:20px; }
+    h1 { margin:0 0 8px; font-size:26px; color:#0f3468; }
+    .desc { margin:0 0 18px; color:var(--muted); font-size:14px; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .full { grid-column:1 / -1; }
+    label { display:block; margin-bottom:6px; font-weight:600; font-size:14px; }
+    input, textarea { width:100%; border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:14px; font-family:inherit; background:#fff; }
+    textarea { min-height:90px; resize:vertical; }
+    .actions { margin-top:12px; display:flex; flex-wrap:wrap; gap:10px; }
+    button { border:none; border-radius:8px; color:#fff; font-size:15px; font-weight:600; padding:10px 18px; cursor:pointer; }
+    button:hover { filter:brightness(1.06); }
+    #generateBtn { background:var(--primary); }
+    #copyBtn { background:var(--secondary); }
+    #clearBtn { background:var(--light); }
+    .result { margin-top:18px; border:1px dashed #9eb9e8; background:#f8fbff; border-radius:10px; padding:14px; }
+    .result h2 { margin:0 0 8px; font-size:16px; color:#0f3468; }
+    #summary { margin:0; white-space:pre-wrap; color:#1f2a37; }
+    @media (max-width:700px) { .grid { grid-template-columns:1fr; } .full { grid-column:auto; } }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <h1>园区企业走访总结生成器</h1>
+      <p class="desc">按正式工作记录风格自动生成走访总结，适合直接复制到台账。</p>
+
+      <div class="grid">
+        <div><label for="company">企业名称</label><input id="company" placeholder="例如：宁波云论光电力科技有限公司" /></div>
+        <div><label for="visitStaff">走访人员</label><input id="visitStaff" placeholder="例如：张三、李四" /></div>
+        <div><label for="contact">联系人</label><input id="contact" placeholder="例如：王经理" /></div>
+        <div><label for="phone">联系电话</label><input id="phone" placeholder="例如：13800000000" /></div>
+        <div class="full"><label for="address">企业实际办公地</label><input id="address" placeholder="例如：宁波市鄞州区XX路XX号XX楼" /></div>
+
+        <div class="full"><label for="basic">企业基本情况</label><textarea id="basic" placeholder="可填写业务板块、人员规模、发展方向等"></textarea></div>
+        <div class="full"><label for="needs">企业需求</label><textarea id="needs" placeholder="可填写场地、融资、招工、市场对接、政策配套等诉求"></textarea></div>
+        <div class="full"><label for="solution">园区解决方案</label><textarea id="solution" placeholder="可填写已对接事项、责任部门、下一步推进建议"></textarea></div>
+      </div>
+
+      <div class="actions">
+        <button id="generateBtn">生成走访总结</button>
+        <button id="copyBtn" type="button">复制总结</button>
+        <button id="clearBtn" type="button">清空表单</button>
+      </div>
+
+      <div class="result" aria-live="polite">
+        <h2>走访总结</h2>
+        <p id="summary">（点击“生成走访总结”后会显示在这里）</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const getValue = (id) => document.getElementById(id).value.trim();
+    const summaryEl = document.getElementById('summary');
+    const fieldIds = ['company','visitStaff','contact','phone','address','basic','needs','solution'];
+
+    document.getElementById('generateBtn').addEventListener('click', () => {
+      const company = getValue('company') || '某企业';
+      const visitStaff = getValue('visitStaff') || '园区服务人员';
+      const contact = getValue('contact') || '未填写';
+      const phone = getValue('phone') || '未填写';
+      const address = getValue('address') || '未填写';
+      const basic = getValue('basic') || '企业基本情况暂未详细提供，已在走访中完成初步了解，后续将结合企业提供材料进一步补充完善。';
+      const needs = getValue('needs') || '本次走访中，企业暂无新增明确诉求，后续将围绕经营发展需求保持动态沟通。';
+      const solution = getValue('solution') || '针对企业当前情况，园区将安排专人持续跟进，并会同相关业务条线研究可行支持路径，形成闭环服务。';
+      const today = new Date().toLocaleDateString('zh-CN');
+
+      const text = `${company}走访总结\n` +
+        `走访时间：${today}\n` +
+        `走访人员：${visitStaff}\n` +
+        `企业联系人：${contact}（${phone}）\n` +
+        `企业实际办公地：${address}\n\n` +
+        `一、企业基本情况\n${basic}\n\n` +
+        `二、企业经营及业务情况\n` +
+        `经沟通了解，企业围绕主营方向持续推进业务落地，整体经营节奏平稳。企业当前业务与园区产业导向具有一定契合度，后续在资源对接、场景匹配及合作拓展方面具备进一步协同空间。\n\n` +
+        `三、企业主要诉求\n本次走访中，企业提出以下需求：\n${needs}\n\n` +
+        `四、下一步服务建议\n${solution}\n`;
+
+      summaryEl.textContent = text;
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      const text = summaryEl.textContent.trim();
+      if (!text || text.includes('点击“生成走访总结”')) {
+        alert('请先生成走访总结，再复制。');
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      alert('走访总结已复制，可直接粘贴到台账。');
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      fieldIds.forEach((id) => { document.getElementById(id).value = ''; });
+      summaryEl.textContent = '（点击“生成走访总结”后会显示在这里）';
+    });
+  </script>
+</body>
+</html>
