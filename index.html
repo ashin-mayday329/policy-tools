@@ -41,11 +41,18 @@
     .auth-box{ background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.35); border-radius:12px; padding:10px 12px; min-width:260px;}
     .auth-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
     .auth-text{font-size:13px; margin-bottom:8px; color:#f1f6ff;}
+    .user-entry{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+    .profile-trigger{display:flex; align-items:center; gap:8px; border:none; background:transparent; color:#fff; cursor:pointer; padding:0;}
+    .profile-trigger:hover{opacity:.92;}
+    .avatar{width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#d4e4ff,#b8d2fa); color:#174999; display:flex; align-items:center; justify-content:center; font-weight:700; border:1px solid rgba(255,255,255,.6);}
+    .nickname{font-size:14px; font-weight:700; color:#f4f8ff;}
     .auth-btn{background:#fff; color:#1b56ae; border:none; border-radius:8px; padding:6px 10px; font-size:13px; font-weight:700; cursor:pointer;}
     .auth-btn.ghost{background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.45);}
     .notice {margin: 12px 0 14px; background:#fff9e7; border:1px solid #f2ddb0; color:#785d1d; border-radius:12px; padding:10px 12px; font-size:13px;}
     .auth-modal{position:fixed; inset:0; background:rgba(9,27,58,.45); display:none; align-items:center; justify-content:center; padding:16px; z-index:20;}
     .auth-modal.show{display:flex;}
+    .profile-modal{position:fixed; inset:0; background:rgba(9,27,58,.45); display:none; align-items:center; justify-content:center; padding:16px; z-index:25;}
+    .profile-modal.show{display:flex;}
     .auth-panel{width:min(460px,100%); background:#fff; border-radius:14px; border:1px solid var(--border); box-shadow:var(--shadow); padding:18px;}
     .auth-tabs{display:flex; gap:8px; margin-bottom:12px;}
     .auth-tab{flex:1; border:1px solid var(--border); background:#f6f9ff; color:#27476b; border-radius:8px; padding:8px; font-weight:700; cursor:pointer;}
@@ -157,8 +164,13 @@
             <button id="openLoginBtn" class="auth-btn" type="button">登录 / 注册</button>
           </div>
           <div id="authUser" class="hidden">
-            <div class="auth-text">当前账号：<strong id="userNickname">-</strong></div>
-            <button id="logoutBtn" class="auth-btn ghost" type="button">退出登录</button>
+            <div class="user-entry">
+              <button id="openProfileBtn" class="profile-trigger" type="button">
+                <span id="userAvatar" class="avatar">U</span>
+                <span id="userNickname" class="nickname">-</span>
+              </button>
+              <button id="logoutBtn" class="auth-btn ghost" type="button">退出登录</button>
+            </div>
           </div>
         </div>
       </div>
@@ -214,6 +226,20 @@
     </section>
   </div>
 
+
+  <div id="profileModal" class="profile-modal" aria-hidden="true">
+    <section class="auth-panel">
+      <h3 style="margin:0 0 12px;color:#123f80;">个人资料</h3>
+      <form id="profileForm">
+        <div><label for="profileNickname">昵称</label><input id="profileNickname" required /></div>
+        <div class="actions">
+          <button type="submit">保存昵称</button>
+          <button type="button" id="closeProfileBtn" class="auth-btn ghost">取消</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
   <script>
     const getValue = (id) => document.getElementById(id).value.trim();
     const summaryEl = document.getElementById('summary');
@@ -221,10 +247,12 @@
 
     const STORAGE_USERS = 'pt_users_v1';
     const STORAGE_CURRENT = 'pt_current_user_v1';
+    const DEFAULT_AVATAR = '人';
     const authGuest = document.getElementById('authGuest');
     const authUser = document.getElementById('authUser');
     const userNicknameEl = document.getElementById('userNickname');
     const authModal = document.getElementById('authModal');
+    const profileModal = document.getElementById('profileModal');
 
     const loadUsers = () => JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}');
     const saveUsers = (users) => localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
@@ -247,9 +275,11 @@
       const username = getCurrentUser();
       const users = loadUsers();
       if (username && users[username]) {
+        const nickname = users[username].nickname || username;
         authGuest.classList.add('hidden');
         authUser.classList.remove('hidden');
-        userNicknameEl.textContent = users[username].nickname || username;
+        userNicknameEl.textContent = nickname;
+        document.getElementById('userAvatar').textContent = (nickname[0] || DEFAULT_AVATAR).toUpperCase();
       } else {
         setCurrentUser('');
         authGuest.classList.remove('hidden');
@@ -275,12 +305,30 @@
     }
 
     document.getElementById('openLoginBtn').addEventListener('click', () => showModal('login'));
+    document.getElementById('openProfileBtn').addEventListener('click', () => {
+      const username = getCurrentUser();
+      const users = loadUsers();
+      if (!username || !users[username]) return;
+      document.getElementById('profileNickname').value = users[username].nickname || username;
+      profileModal.classList.add('show');
+      profileModal.setAttribute('aria-hidden', 'false');
+    });
     document.getElementById('logoutBtn').addEventListener('click', () => { setCurrentUser(''); refreshAuthUI(); });
     document.getElementById('tabLogin').addEventListener('click', () => setTab('login'));
     document.getElementById('tabRegister').addEventListener('click', () => setTab('register'));
     document.getElementById('closeModalBtn').addEventListener('click', hideModal);
     document.getElementById('closeModalBtn2').addEventListener('click', hideModal);
     authModal.addEventListener('click', (e) => { if (e.target === authModal) hideModal(); });
+    document.getElementById('closeProfileBtn').addEventListener('click', () => {
+      profileModal.classList.remove('show');
+      profileModal.setAttribute('aria-hidden', 'true');
+    });
+    profileModal.addEventListener('click', (e) => {
+      if (e.target === profileModal) {
+        profileModal.classList.remove('show');
+        profileModal.setAttribute('aria-hidden', 'true');
+      }
+    });
 
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -318,6 +366,21 @@
     });
 
     refreshAuthUI();
+
+    document.getElementById('profileForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = getCurrentUser();
+      const users = loadUsers();
+      if (!username || !users[username]) return;
+      const nickname = document.getElementById('profileNickname').value.trim();
+      if (!nickname) return alert('昵称不能为空。');
+      users[username].nickname = nickname;
+      saveUsers(users);
+      refreshAuthUI();
+      profileModal.classList.remove('show');
+      profileModal.setAttribute('aria-hidden', 'true');
+      alert('昵称已更新。');
+    });
 
     document.getElementById('generateBtn').addEventListener('click', () => {
       const company = getValue('company') || '某企业';
