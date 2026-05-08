@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>宁波企业科技政策申报初筛工具</title>
+  <title>企业科技政策申报初筛工具</title>
   <style>
     :root{--bg:#edf3fc;--card:#fff;--text:#1b2f4e;--muted:#5f7190;--primary:#1f5fbf;--primary2:#114b9d;--line:#d8e3f5}
     *{box-sizing:border-box} body{margin:0;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
@@ -15,7 +15,7 @@
     label{display:block;margin:0 0 6px;font-weight:600;font-size:14px}input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfdff}
     textarea{min-height:76px;resize:vertical}.actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
     button,a.btn{border:none;padding:10px 16px;border-radius:10px;color:#fff;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
-    #genBtn{background:linear-gradient(135deg,var(--primary),var(--primary2))}#copyBtn{background:#0d86ad}#clearBtn{background:#6b7f9d}
+    #genBtn{background:linear-gradient(135deg,var(--primary),var(--primary2))}#copyBtn{background:#0d86ad}#wordBtn{background:#2a7a4f}#clearBtn{background:#6b7f9d}
     .result{margin-top:14px;border:1px solid #b8cff2;background:#f4f8ff;border-radius:12px;padding:14px}
     #report{white-space:pre-wrap;background:#fff;border:1px solid #d5e2f7;border-radius:10px;padding:12px;min-height:160px;margin:0}
     .tip{margin-top:14px;color:#2f4668;font-size:13px;background:#f7fbff;border:1px dashed #b7ccef;border-radius:10px;padding:10px}
@@ -25,7 +25,7 @@
 <body>
   <main class="wrap">
     <section class="hero">
-      <h1>宁波企业科技政策申报初筛工具</h1>
+      <h1>企业科技政策申报初筛工具</h1>
       <p>适用地区：宁波市｜用于园区服务人员初筛辅助判断（非正式认定）</p>
     </section>
 
@@ -135,8 +135,13 @@
       <div class="actions">
         <button id="genBtn">生成初筛报告</button>
         <button id="copyBtn" type="button">复制报告</button>
+        <button id="wordBtn" type="button">下载Word</button>
         <button id="clearBtn" type="button">清空表单</button>
         <a class="btn" style="background:#6b7f9d" href="index.html">返回走访总结工具</a>
+      </div>
+      <div style="margin-top:10px">
+        <label>经办人（可随时修改，最终以当前填写为准）</label>
+        <input id="operator" placeholder="例如：张三 / 李四 / 王五">
       </div>
       <div class="result">
         <h2>初筛报告</h2>
@@ -215,7 +220,8 @@ function evaluate(){
  '合规证明或承诺（无重大失信、安全、质量、环保违法）'
  ];
 
- const text = `${company}科技政策申报初筛报告（宁波）\n`+
+ const operator = $('operator').value.trim() || '未填写';
+ const text = `甬港现代科技园\n${company}科技政策申报初筛报告（宁波）\n`+
  `所属行业：${industryFinal}\n主营产品或服务：${mainBizFinal}\n\n综合建议：${overall}\n\n`+
  `一、省科小：${skRes}\n符合点：${skFits.join('；')||'暂无明显符合点'}\n风险点：${skRisks.join('；')||'暂无明显风险点'}\n补强建议：${skAdv.join('；')}\n\n`+
  `二、国科小：${gkRes}\n符合点：硬性条件${gkHard?'基本满足':'存在缺口'}；科技人员得分${techScore}分；研发投入得分${rdScore}分；科技成果得分${ipScore}分；总分约${totalScore}分。\n风险点：${gkHard?'主要关注分值提升':'人员规模/收入/资产或合规条件存在不满足项'}。\n补强建议：提升科技人员占比、加大研发投入归集、补充Ⅰ类或Ⅱ类知识产权。\n\n`+
@@ -223,6 +229,7 @@ function evaluate(){
  `四、市创：${scRes}\n符合点：市创相关指标符合约${scScore}项。\n风险点：若核心技术、团队或成长性材料不足，评估结论可能波动。\n补强建议：突出“核心技术+应用场景+成长潜力”，同步完善融资、人才和孵化支撑材料。\n\n`+
  `建议准备材料清单：\n- ${material.join('\n- ')}\n\n`+
  `可直接发给企业的服务建议：\n贵司当前具备一定科技政策申报基础，建议近期先按“基础合规—研发归集—知识产权—财务指标”四条主线完善佐证材料。园区可协助开展一对一政策匹配和材料预审，待当年官方通知发布后再按主管部门口径进行正式申报。\n\n`+
+ `经办园区：甬港现代科技园\n经办人：${operator}\n`+
  `【提示】本工具仅作园区服务初筛参考，正式申报以当年官方通知和主管部门审核为准。`;
  $('report').textContent=text;
 }
@@ -230,6 +237,31 @@ $('genBtn').addEventListener('click',evaluate);
 $('copyBtn').addEventListener('click', async ()=>{
  const text=$('report').textContent.trim(); if(text.startsWith('（点击')){alert('请先生成初筛报告。');return;}
  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);}else{const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}alert('初筛报告已复制。');}catch{alert('复制失败，请手动复制。');}
+});
+$('wordBtn').addEventListener('click', ()=>{
+ const text=$('report').textContent.trim(); if(text.startsWith('（点击')){alert('请先生成初筛报告。');return;}
+ const company=($('company').value.trim()||'企业').replace(/[\\\\/:*?\"<>|]/g,'_');
+ const lines = text.split('\\n').filter(Boolean);
+ const body = lines.map((line, idx)=>{
+   if(idx===0) return `<h1>${line}</h1>`;
+   if(line.startsWith('综合建议：')) return `<h2>${line}</h2>`;
+   if(/^([一二三四])、/.test(line)) return `<h3>${line}</h3>`;
+   if(line.startsWith('【提示】')) return `<p class=\"tip\">${line}</p>`;
+   if(line.startsWith('- ')) return `<li>${line.slice(2)}</li>`;
+   return `<p>${line}</p>`;
+ }).join('');
+ const html = `<!doctype html><html><head><meta charset=\"UTF-8\"><style>
+ body{font-family:\"Microsoft YaHei\",\"PingFang SC\",sans-serif;line-height:1.7;color:#1f2d45;padding:28px}
+ .park{font-size:14px;text-align:center;color:#2a4b76;margin:0 0 4px}
+ h1{font-size:24px;text-align:center;color:#154c9d;margin:0 0 14px}
+ h2{font-size:18px;color:#1757ae;border-left:4px solid #2a7a4f;padding-left:8px}
+ h3{font-size:16px;color:#184c96;margin:14px 0 8px}
+ p{margin:6px 0;font-size:13.5px} li{margin:4px 0;font-size:13.5px}
+ .tip{margin-top:14px;color:#45607f;background:#f4f8ff;border:1px solid #d6e2f5;padding:8px;border-radius:8px}
+ </style></head><body><p class=\"park\">甬港现代科技园</p>${body}</body></html>`;
+ const blob = new Blob(['\\ufeff', html], {type:'application/msword'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${company}政策初筛报告.doc`;
+ document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
 });
 $('clearBtn').addEventListener('click',()=>{document.querySelectorAll('input').forEach(i=>i.value='');document.querySelectorAll('select').forEach(s=>s.selectedIndex=0);$('report').textContent='（点击“生成初筛报告”后会显示在这里）';});
 </script>
