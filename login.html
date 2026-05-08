@@ -31,39 +31,39 @@ input:focus{outline:none;border-color:#75a4e8;box-shadow:0 0 0 3px rgba(30,95,19
     <h1>园区企业服务工具箱</h1>
     <p class="sub">企业走访记录 · 政策申报初筛 · 服务台账管理</p>
   </div>
-  <div class="note"><i>ℹ️</i><span>本系统为本地演示版，账号和数据仅保存在当前浏览器本地，请勿录入敏感企业信息。</span></div>
+  <div class="note"><i>ℹ️</i><span>已升级为云端账号登录，邮箱账号可跨设备使用。请勿录入敏感企业信息。</span></div>
 </section>
 <section class="panel">
   <div class="tabs"><button id="tabLogin" class="tab active" type="button">登录</button><button id="tabRegister" class="tab" type="button">注册</button></div>
   <form id="loginForm">
-    <label>账号</label><input id="loginUsername" required>
+    <label>邮箱</label><input id="loginEmail" type="email" required>
     <label>密码</label><input id="loginPassword" type="password" required>
     <button class="submit" type="submit">登录并进入系统</button>
-    <p id="firstTip" class="hint hidden">首次使用请先注册账号。</p>
   </form>
   <form id="registerForm" class="hidden">
-    <label>账号</label><input id="regUsername" required>
+    <label>邮箱</label><input id="regEmail" type="email" required>
     <label>密码</label><input id="regPassword" type="password" required>
     <label>确认密码</label><input id="regConfirmPassword" type="password" required>
     <label>昵称</label><input id="regNickname" required>
-    <button class="submit" type="submit">注册并登录</button>
+    <button class="submit" type="submit">注册账号</button>
   </form>
   <div id="message" class="msg"></div>
 </section></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co';
+const SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';
+const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const STORAGE_USERS='pt_users_v1',STORAGE_CURRENT='pt_current_user_v1';
 const loadUsers=()=>JSON.parse(localStorage.getItem(STORAGE_USERS)||'{}');
 const saveUsers=(u)=>localStorage.setItem(STORAGE_USERS,JSON.stringify(u));
-const getCurrentUser=()=>localStorage.getItem(STORAGE_CURRENT)||'';
-const setCurrentUser=(u)=>u?localStorage.setItem(STORAGE_CURRENT,u):localStorage.removeItem(STORAGE_CURRENT);
 const msgEl=document.getElementById('message');
-const showMsg=(text,type='error')=>{msgEl.textContent=text;msgEl.className=`msg show ${type}`;};
-async function hashPassword(password){if(window.crypto&&window.crypto.subtle){const m=new TextEncoder().encode(password);const h=await crypto.subtle.digest('SHA-256',m);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('')}return btoa(unescape(encodeURIComponent(password)))}
-const users=loadUsers();if(getCurrentUser()&&users[getCurrentUser()]) window.location.replace('index.html');
-if(!Object.keys(users).length) document.getElementById('firstTip').classList.remove('hidden');
+const showMsg=(text,type='error')=>{msgEl.textContent=text||'操作失败，请稍后重试。';msgEl.className=`msg show ${type}`;};
+const isValidEmail=(email)=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+(async()=>{const {data}=await supabase.auth.getSession();if(data.session){window.location.replace('index.html');}})();
 const setTab=(isLogin)=>{tabLogin.classList.toggle('active',isLogin);tabRegister.classList.toggle('active',!isLogin);loginForm.classList.toggle('hidden',!isLogin);registerForm.classList.toggle('hidden',isLogin);msgEl.className='msg';msgEl.textContent='';};
 tabLogin.onclick=()=>setTab(true);tabRegister.onclick=()=>setTab(false);
-loginForm.onsubmit=async(e)=>{e.preventDefault();const u=loginUsername.value.trim(),p=loginPassword.value;const us=loadUsers(),user=us[u];if(!user)return showMsg('账号不存在，请先注册。');if(await hashPassword(p)!==user.passwordHash)return showMsg('密码错误，请重试。');setCurrentUser(u);showMsg('登录成功，正在进入系统…','success');setTimeout(()=>window.location.href='index.html',400);};
-registerForm.onsubmit=async(e)=>{e.preventDefault();const u=regUsername.value.trim(),p=regPassword.value,c=regConfirmPassword.value,n=regNickname.value.trim();if(!u||!p||!n)return showMsg('请完整填写注册信息。');if(p!==c)return showMsg('两次密码不一致。');const us=loadUsers();if(us[u])return showMsg('账号已存在，请更换账号。');us[u]={nickname:n,passwordHash:await hashPassword(p),createdAt:Date.now(),avatarDataUrl:''};saveUsers(us);setCurrentUser(u);showMsg('注册成功，正在进入系统…','success');setTimeout(()=>window.location.href='index.html',400);};
+loginForm.onsubmit=async(e)=>{e.preventDefault();const email=loginEmail.value.trim().toLowerCase(),password=loginPassword.value;if(!isValidEmail(email))return showMsg('邮箱格式不正确。');if(password.length<6)return showMsg('密码长度不足，至少 6 位。');const {data,error}=await supabase.auth.signInWithPassword({email,password});if(error){if(error.message.includes('Invalid login credentials'))return showMsg('账号或密码错误。');if(error.message.includes('Email not confirmed'))return showMsg('邮箱尚未验证，请先完成邮箱验证。');return showMsg('登录失败，请稍后重试。');}localStorage.setItem(STORAGE_CURRENT,data.user?.email||email);showMsg('登录成功，正在进入系统…','success');setTimeout(()=>window.location.href='index.html',350);};
+registerForm.onsubmit=async(e)=>{e.preventDefault();const email=regEmail.value.trim().toLowerCase(),password=regPassword.value,confirm=regConfirmPassword.value,nickname=regNickname.value.trim();if(!isValidEmail(email))return showMsg('邮箱格式不正确。');if(password.length<6)return showMsg('密码长度不足，至少 6 位。');if(password!==confirm)return showMsg('两次密码不一致。');if(!nickname)return showMsg('请填写昵称。');const {data,error}=await supabase.auth.signUp({email,password});if(error){if(error.message.includes('already registered'))return showMsg('该邮箱已注册，请直接登录。');return showMsg('注册失败，请稍后重试。');}const users=loadUsers();users[email]={...(users[email]||{}),nickname,avatarDataUrl:users[email]?.avatarDataUrl||'',updatedAt:Date.now()};saveUsers(users);if(data.session){localStorage.setItem(STORAGE_CURRENT,email);showMsg('注册成功，正在进入系统…','success');setTimeout(()=>window.location.href='index.html',350);return;}showMsg('注册成功，请前往邮箱完成验证后再登录。','success');};
 </script>
 </body></html>
