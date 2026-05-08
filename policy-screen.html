@@ -173,6 +173,7 @@ const txt = (v)=> (v && String(v).trim()) ? String(v).trim() : '未填写';
 const toList = (arr)=> (arr && arr.length ? arr : ['暂无']);
 const listText = (arr)=> toList(arr).map((x,i)=>`${i+1}. ${x}`).join('\n');
 let lastPlainText = '';
+let lastReportData = null;
 
 function evaluate(){
  const company=txt($('company').value)||'该企业';
@@ -272,6 +273,14 @@ function evaluate(){
    <p class="report-tip">【提示】本工具仅作园区服务初筛参考，正式申报以当年官方通知和主管部门审核为准。</p>
  </article>`;
  $('report').innerHTML = reportHtml;
+ lastReportData = {
+   company: txt(company), district, industry: txt(industryFinal), mainBiz: txt(mainBizFinal), overall,
+   skRes, skFits: toList(skFits), skRisks: toList(skRisks), skAdv: toList(skAdv),
+   gkRes, totalScore, gkFits: toList(gkFits), gkRisks: toList(gkRisks), gkAdv: toList(gkAdv),
+   hqRes, hqFits: toList(hqFitsText), hqRisks: toList(hqRisk), hqAdv: toList(hqAdv),
+   scRes, scFits: toList(scFits), scRisks: toList(scRisks), scAdv: toList(scAdv),
+   material, operator
+ };
  lastPlainText = `【宁波企业科技政策申报初筛报告】\n\n企业名称：${txt(company)}\n注册地址：${district}\n所属行业：${txt(industryFinal)}\n主营产品或服务：${txt(mainBizFinal)}\n\n一、综合建议\n根据企业当前填报信息，建议优先关注：${overall}。\n其中，省科小（${skRes}）、国科小（${gkRes}）、高企（${hqRes}）、市创（${scRes}）。\n\n二、省科小初筛\n初筛结论：${skRes}\n符合点：\n${listText(skFits)}\n风险点：\n${listText(skRisks)}\n补强建议：\n${listText(skAdv)}\n\n三、国科小初筛\n初筛结论：${gkRes}\n预估得分：${totalScore}分\n符合点：\n${listText(gkFits)}\n风险点：\n${listText(gkRisks)}\n补强建议：\n${listText(gkAdv)}\n\n四、高企初筛\n初筛结论：${hqRes}\n符合点：\n${listText(hqFitsText)}\n风险点：\n${listText(hqRisk)}\n补强建议：\n${listText(hqAdv)}\n\n五、市创初筛\n初筛结论：${scRes}\n符合点：\n${listText(scFits)}\n风险点：\n${listText(scRisks)}\n补强建议：\n${listText(scAdv)}\n\n六、建议准备材料\n${material.map((m,i)=>`${i+1}. ${m}`).join('\n')}\n\n七、园区服务建议\n建议园区后续围绕“政策匹配、材料预审、研发归集、知识产权布局、财务指标完善”等方面协助企业做好申报准备。\n经办园区：甬港现代科技园\n经办人：${operator}\n\n【提示】本工具仅作园区服务初筛参考，正式申报以当年官方通知和主管部门审核为准。`;
 }
 $('genBtn').addEventListener('click',evaluate);
@@ -280,32 +289,42 @@ $('copyBtn').addEventListener('click', async ()=>{
  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);}else{const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);}alert('初筛报告已复制。');}catch{alert('复制失败，请手动复制。');}
 });
 $('wordBtn').addEventListener('click', ()=>{
- const text=lastPlainText.trim(); if(!text){alert('请先生成初筛报告。');return;}
+ if(!lastReportData){alert('请先生成初筛报告。');return;}
  const company=($('company').value.trim()||'企业').replace(/[\\\\/:*?\"<>|]/g,'_');
- const lines = text.split('\\n').filter(Boolean);
- const body = lines.map((line, idx)=>{
-   if(idx===0) return `<h1>${line}</h1>`;
-   if(line.startsWith('综合建议：')) return `<h2>${line}</h2>`;
-   if(/^([一二三四])、/.test(line)) return `<h3>${line}</h3>`;
-   if(line.startsWith('【提示】')) return `<p class=\"tip\">${line}</p>`;
-   if(line.startsWith('- ')) return `<li>${line.slice(2)}</li>`;
-   return `<p>${line}</p>`;
- }).join('');
+ const d = lastReportData;
+ const toOl = (arr)=>`<ol>${arr.map(i=>`<li>${i}</li>`).join('')}</ol>`;
+ const body = `
+ <h1>【宁波企业科技政策申报初筛报告】</h1>
+ <p><b>企业名称：</b>${d.company}</p>
+ <p><b>注册地址：</b>${d.district}</p>
+ <p><b>所属行业：</b>${d.industry}</p>
+ <p><b>主营产品或服务：</b>${d.mainBiz}</p>
+ <h2>一、综合建议</h2>
+ <p>根据企业当前填报信息，建议优先关注：${d.overall}。</p>
+ <p>其中，省科小（${d.skRes}）、国科小（${d.gkRes}）具备一定基础；高企（${d.hqRes}）、市创（${d.scRes}）建议结合企业实际持续培育或进一步确认。</p>
+ <h2>二、省科小初筛</h2><p><b>初筛结论：</b>${d.skRes}</p><p><b>符合点：</b></p>${toOl(d.skFits)}<p><b>风险点：</b></p>${toOl(d.skRisks)}<p><b>补强建议：</b></p>${toOl(d.skAdv)}
+ <h2>三、国科小初筛</h2><p><b>初筛结论：</b>${d.gkRes}</p><p><b>预估得分：</b>${d.totalScore}分</p><p><b>符合点：</b></p>${toOl(d.gkFits)}<p><b>风险点：</b></p>${toOl(d.gkRisks)}<p><b>补强建议：</b></p>${toOl(d.gkAdv)}
+ <h2>四、高企初筛</h2><p><b>初筛结论：</b>${d.hqRes}</p><p><b>符合点：</b></p>${toOl(d.hqFits)}<p><b>风险点：</b></p>${toOl(d.hqRisks)}<p><b>补强建议：</b></p>${toOl(d.hqAdv)}
+ <h2>五、市创初筛</h2><p><b>初筛结论：</b>${d.scRes}</p><p><b>符合点：</b></p>${toOl(d.scFits)}<p><b>风险点：</b></p>${toOl(d.scRisks)}<p><b>补强建议：</b></p>${toOl(d.scAdv)}
+ <h2>六、建议准备材料</h2>${toOl(d.material)}
+ <h2>七、园区服务建议</h2><p>建议园区后续围绕政策匹配、材料预审、研发归集、知识产权布局、财务指标完善等方面，协助企业做好申报准备。</p>
+ <p>经办园区：甬港现代科技园</p><p>经办人：${d.operator}</p>
+ <h2>【提示】</h2><p>本工具仅作园区服务初筛参考，正式申报以当年官方通知和主管部门审核为准。</p>`;
  const html = `<!doctype html><html><head><meta charset=\"UTF-8\"><style>
- body{font-family:\"Microsoft YaHei\",\"PingFang SC\",sans-serif;line-height:1.7;color:#1f2d45;padding:28px}
- .park{font-size:14px;text-align:center;color:#2a4b76;margin:0 0 4px}
- h1{font-size:24px;text-align:center;color:#154c9d;margin:0 0 14px}
- h2{font-size:18px;color:#1757ae;border-left:4px solid #2a7a4f;padding-left:8px}
- h3{font-size:16px;color:#184c96;margin:14px 0 8px}
- p{margin:6px 0;font-size:13.5px} li{margin:4px 0;font-size:13.5px}
- .tip{margin-top:14px;color:#45607f;background:#f4f8ff;border:1px solid #d6e2f5;padding:8px;border-radius:8px}
- </style></head><body><p class=\"park\">甬港现代科技园</p>${body}</body></html>`;
+ @page { size: A4; margin: 2.2cm 2cm; }
+ body{font-family:\"Microsoft YaHei\",\"SimSun\",sans-serif;line-height:1.8;color:#222;padding:0;margin:0}
+ h1{font-size:20px;text-align:center;color:#1b1b1b;margin:0 0 16px}
+ h2{font-size:16px;color:#222;margin:16px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}
+ p{margin:6px 0;font-size:13.5px}
+ ol{margin:6px 0 10px 20px;padding:0}
+ li{margin:3px 0;font-size:13.5px}
+ </style></head><body>${body}</body></html>`;
  const blob = new Blob(['\\ufeff', html], {type:'application/msword'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${company}政策初筛报告.doc`;
  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
 });
 $('printBtn').addEventListener('click', ()=>{ if(!lastPlainText.trim()){alert('请先生成初筛报告。');return;} window.print(); });
-$('clearBtn').addEventListener('click',()=>{document.querySelectorAll('input').forEach(i=>i.value='');document.querySelectorAll('select').forEach(s=>s.selectedIndex=0);$('report').textContent='（点击“生成初筛报告”后会显示在这里）';lastPlainText='';});
+$('clearBtn').addEventListener('click',()=>{document.querySelectorAll('input').forEach(i=>i.value='');document.querySelectorAll('select').forEach(s=>s.selectedIndex=0);$('report').textContent='（点击“生成初筛报告”后会显示在这里）';lastPlainText='';lastReportData=null;});
 </script>
 </body>
 </html>
