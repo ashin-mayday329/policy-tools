@@ -8,143 +8,117 @@
 </head>
 <body>
   <div class="app-shell">
-    <header class="hero card card-lg">
-      <div class="hero-left">
-        <p class="eyebrow">UI 视觉预览页</p>
+    <header class="hero">
+      <div class="hero-glow hero-glow-a"></div>
+      <div class="hero-glow hero-glow-b"></div>
+      <div class="hero-grid"></div>
+
+      <div class="hero-content">
+        <p class="hero-badge">园区企业服务系统</p>
         <h1>园区企业服务工具箱</h1>
-        <p class="subtitle">企业走访记录 · 政策申报初筛 · 服务台账管理</p>
-        <p class="hero-note">面向园区服务人员的内部工作系统</p>
-      </div>
-      <div class="user-panel">
-        <img class="avatar" src="https://api.dicebear.com/9.x/initials/svg?seed=Mayday" alt="用户头像" />
-        <div class="user-meta">
-          <strong>mayday</strong>
-          <span class="role">园区服务人员</span>
-          <div class="user-actions">
-            <a href="javascript:void(0)">个人资料</a>
-            <span>·</span>
-            <a href="javascript:void(0)">退出登录</a>
-          </div>
+        <p class="hero-subtitle">企业走访记录 · 政策申报初筛 · 服务台账管理</p>
+        <p class="hero-desc">面向园区服务人员的内部工作系统，支持企业走访、政策初筛、记录沉淀与数据管理。</p>
+        <div class="hero-tags">
+          <span>云端记录</span>
+          <span>政策初筛</span>
+          <span>服务台账</span>
         </div>
       </div>
+
+      <aside class="glass-user-card">
+        <div class="avatar">MA</div>
+        <div class="user-name">mayday</div>
+        <div class="user-role">园区服务人员</div>
+        <div class="user-link-group">
+          <a href="javascript:void(0)">个人资料</a>
+          <a href="javascript:void(0)">退出登录</a>
+        </div>
+      </aside>
     </header>
 
-    <section class="card nav-section">
-      <h2>功能导航</h2>
+    <section class="panel">
+      <h2 class="section-title">功能导航</h2>
       <div class="nav-grid">
-        <article class="feature-card">
-          <h3>企业走访服务台账</h3>
-          <p>记录走访情况，生成服务总结</p>
-        </article>
-        <article class="feature-card">
-          <h3>政策申报初筛工具</h3>
-          <p>快速判断企业申报方向</p>
-        </article>
-        <article class="feature-card">
-          <h3>走访记录查询</h3>
-          <p>查看和管理历史走访记录</p>
-        </article>
-        <article class="feature-card">
-          <h3>企业初筛记录</h3>
-          <p>查看企业政策初筛结果</p>
-        </article>
+        <article class="feature-card active"><span class="icon-box">📘</span><span class="dot"></span><h3>企业走访服务台账</h3><p>记录走访情况，生成服务总结</p></article>
+        <article class="feature-card"><span class="icon-box">🧭</span><span class="dot"></span><h3>政策申报初筛工具</h3><p>快速判断企业申报方向</p></article>
+        <article class="feature-card"><span class="icon-box">🗂️</span><span class="dot"></span><h3>走访记录查询</h3><p>查看和管理历史走访记录</p></article>
+        <article class="feature-card"><span class="icon-box">📊</span><span class="dot"></span><h3>企业初筛记录</h3><p>沉淀企业政策初筛结果</p></article>
       </div>
     </section>
 
     <section class="stats-grid">
-      <article class="card stat-card">
-        <span class="stat-icon">📅</span>
-        <p class="label">本月走访记录</p>
-        <p class="value">12 <span>条</span></p>
-        <p class="desc">较上月提升 20%，服务节奏稳定</p>
+      <article class="panel stat-card">
+        <i>📅</i><em></em><p class="label">本月走访记录</p><p class="value">12 <span>条</span></p><p class="desc">较上月提升 20%</p>
       </article>
-      <article class="card stat-card">
-        <span class="stat-icon">🧭</span>
-        <p class="label">企业初筛记录</p>
-        <p class="value">8 <span>条</span></p>
-        <p class="desc">重点覆盖高新认定与补贴申报方向</p>
+      <article class="panel stat-card">
+        <i>🧠</i><em></em><p class="label">企业初筛记录</p><p class="value">8 <span>条</span></p><p class="desc">重点覆盖高新认定与补贴申报方向</p>
       </article>
-      <article class="card stat-card">
-        <span class="stat-icon">🏢</span>
-        <p class="label">服务企业</p>
-        <p class="value">20 <span>家</span></p>
-        <p class="desc">累计跟进企业需求与问题闭环</p>
+      <article class="panel stat-card">
+        <i>🏢</i><em></em><p class="label">服务企业</p><p class="value">20 <span>家</span></p><p class="desc">累计跟进企业需求与问题闭环</p>
       </article>
     </section>
 
-    <section class="card form-card">
-      <h2>走访表单预览</h2>
-      <div class="form-layout">
-        <article class="form-block">
-          <h3>企业基础信息</h3>
-          <div class="form-grid">
-            <label>企业名称<input type="text" placeholder="请输入企业名称" /></label>
-            <label>走访人员<input type="text" placeholder="请输入走访人员" /></label>
-            <label>联系人<input type="text" placeholder="请输入联系人" /></label>
-            <label>联系电话<input type="text" placeholder="请输入联系电话" /></label>
-          </div>
-          <label>企业实际办公地<textarea placeholder="请填写企业实际办公地"></textarea></label>
-        </article>
+    <section class="panel form-panel">
+      <h2 class="section-title">走访表单预览</h2>
+      <div class="form-two-col">
+        <div class="main-form-card">
+          <article class="form-group">
+            <h3>企业基础信息</h3>
+            <div class="form-grid">
+              <label>企业名称<input type="text" placeholder="请输入企业名称" /></label>
+              <label>走访人员<input type="text" placeholder="请输入走访人员" /></label>
+              <label>联系人<input type="text" placeholder="请输入联系人" /></label>
+              <label>联系电话<input type="text" placeholder="请输入联系电话" /></label>
+            </div>
+            <label>企业实际办公地<textarea placeholder="请填写企业实际办公地"></textarea></label>
+          </article>
 
-        <article class="form-block">
-          <h3>走访内容</h3>
-          <div class="form-stack">
-            <label>企业基本情况<textarea placeholder="请填写企业基本情况"></textarea></label>
-            <label>企业需求<textarea placeholder="请填写企业需求"></textarea></label>
-            <label>园区解决方案<textarea placeholder="请填写园区解决方案"></textarea></label>
-          </div>
-        </article>
+          <article class="form-group">
+            <h3>走访内容</h3>
+            <div class="form-stack">
+              <label>企业基本情况<textarea placeholder="请填写企业基本情况"></textarea></label>
+              <label>企业需求<textarea placeholder="请填写企业需求"></textarea></label>
+              <label>园区解决方案<textarea placeholder="请填写园区解决方案"></textarea></label>
+            </div>
+          </article>
+        </div>
 
-        <article class="form-block action-block">
-          <h3>操作区</h3>
-          <div class="btn-row">
+        <aside class="preview-card">
+          <h3>走访总结预览</h3>
+          <div class="empty-state">
+            <div class="empty-icon">✦</div>
+            <p>点击生成后将在此处展示走访总结</p>
+          </div>
+          <div class="btn-stack">
             <button class="btn btn-primary">生成走访总结</button>
             <button class="btn btn-secondary">复制总结</button>
-            <button class="btn btn-assist">保存到走访记录</button>
+            <button class="btn btn-save">保存到走访记录</button>
             <button class="btn btn-danger">清空表单</button>
           </div>
-        </article>
+        </aside>
       </div>
     </section>
 
-    <section class="card">
+    <section class="panel">
       <div class="section-head">
-        <h2>记录列表预览</h2>
+        <h2 class="section-title">记录列表预览</h2>
         <span class="tag">共 2 条</span>
       </div>
 
       <article class="record-card">
-        <div class="record-head">
-          <h3>星海智能科技有限公司</h3>
-          <time>2026-05-08 14:30</time>
-        </div>
-        <div class="record-meta">
-          <span>联系人：刘女士</span>
-          <span>联系电话：138****6678</span>
-        </div>
+        <span class="status">待跟进</span>
+        <div class="record-head"><h3>星海智能科技有限公司</h3><time>2026-05-08 14:30</time></div>
+        <div class="record-meta"><span>👤 刘女士</span><span>📞 138****6678</span></div>
         <p class="record-summary">企业正在扩充研发团队，关注人才公寓及高新技术企业认定路径，需政策辅导与申报节点提醒。</p>
-        <div class="btn-row">
-          <button class="btn btn-secondary">查看</button>
-          <button class="btn btn-assist">编辑</button>
-          <button class="btn btn-danger">删除</button>
-        </div>
+        <div class="btn-row"><button class="btn btn-secondary">查看</button><button class="btn btn-assist">编辑</button><button class="btn btn-danger">删除</button></div>
       </article>
 
       <article class="record-card">
-        <div class="record-head">
-          <h3>蓝港生物医药有限公司</h3>
-          <time>2026-05-06 10:12</time>
-        </div>
-        <div class="record-meta">
-          <span>联系人：周先生</span>
-          <span>联系电话：139****1024</span>
-        </div>
+        <span class="status done">已记录</span>
+        <div class="record-head"><h3>蓝港生物医药有限公司</h3><time>2026-05-06 10:12</time></div>
+        <div class="record-meta"><span>👤 周先生</span><span>📞 139****1024</span></div>
         <p class="record-summary">企业计划新增中试生产线，重点咨询场地扩租、设备补贴政策与知识产权加速审查服务。</p>
-        <div class="btn-row">
-          <button class="btn btn-secondary">查看</button>
-          <button class="btn btn-assist">编辑</button>
-          <button class="btn btn-danger">删除</button>
-        </div>
+        <div class="btn-row"><button class="btn btn-secondary">查看</button><button class="btn btn-assist">编辑</button><button class="btn btn-danger">删除</button></div>
       </article>
     </section>
   </div>
