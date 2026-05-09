@@ -77,6 +77,7 @@ const showMsg=(text,type='error')=>{msgEl.textContent=text||'操作失败，请�
 const clearMsg=()=>{msgEl.textContent='';msgEl.className='msg';};
 const isValidEmail=(email)=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const setButtonLoading=(btn,isLoading,idleText)=>{if(!btn)return;btn.disabled=isLoading;btn.textContent=isLoading?'处理中...':idleText;};
+const withTimeout=(promise,ms,msg)=>Promise.race([promise,new Promise((_,rej)=>setTimeout(()=>rej(new Error(msg)),ms))]);
 const setTab=(isLogin)=>{tabLoginBtn.classList.toggle('active',isLogin);tabRegisterBtn.classList.toggle('active',!isLogin);loginForm.classList.toggle('hidden',!isLogin);registerForm.classList.toggle('hidden',isLogin);clearMsg();};
 
 let supabaseClient=null;
@@ -94,13 +95,13 @@ try{
     const {data,error}=await supabaseClient.auth.getSession();
     if(error){
       console.error('读取登录状态失败:',error);
-      showMsg('登录状态检查失败，请稍后重试。');
+      console.warn('读取登录状态失败:',error);
       return;
     }
     if(data.session){window.location.replace('index.html');}
   }catch(err){
     console.error('读取登录状态异常:',err);
-    showMsg('登录状态检查失败，请稍后重试。');
+    console.warn('读取登录状态异常:',err);
   }
 })();
 
@@ -116,18 +117,18 @@ const handleLogin=async()=>{
 
   setButtonLoading(loginSubmitBtn,true,'登录并进入系统');
   try{
-    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+    const {data,error}=await withTimeout(supabaseClient.auth.signInWithPassword({email,password}),10000,'登录超时');
     if(error){
       if((error.message||'').includes('Invalid login credentials')) return showMsg('邮箱或密码错误。');
       if((error.message||'').includes('Email not confirmed')) return showMsg('邮箱尚未验证，请先完成邮箱验证。');
-      return showMsg('登录失败，请稍后重试。');
+      return showMsg(err?.message==='登录超时'?'加载较慢，请稍后或刷新。':'登录失败，请稍后重试。');
     }
     localStorage.setItem(STORAGE_CURRENT,(data.user?.email||email).toLowerCase());
     showMsg('登录成功，正在进入系统…','success');
     setTimeout(()=>window.location.href='index.html',350);
   }catch(err){
     console.error('登录异常:',err);
-    showMsg('登录失败，请稍后重试。');
+    showMsg(err?.message==='登录超时'?'加载较慢，请稍后或刷新。':'登录失败，请稍后重试。');
   }finally{
     setButtonLoading(loginSubmitBtn,false,'登录并进入系统');
   }
@@ -146,10 +147,10 @@ const handleRegister=async()=>{
 
   setButtonLoading(registerSubmitBtn,true,'注册账号');
   try{
-    const {data,error}=await supabaseClient.auth.signUp({email,password});
+    const {data,error}=await withTimeout(supabaseClient.auth.signUp({email,password}),10000,'注册超时');
     if(error){
       if((error.message||'').includes('already registered')) return showMsg('该邮箱已注册，请直接登录。');
-      return showMsg('注册失败，请稍后重试。');
+      return showMsg(err?.message==='注册超时'?'加载较慢，请稍后或刷新。':'保存失败，请稍后重试。');
     }
     const users=loadUsers();
     users[email]={...(users[email]||{}),nickname,avatarDataUrl:users[email]?.avatarDataUrl||'',updatedAt:Date.now()};
@@ -164,7 +165,7 @@ const handleRegister=async()=>{
     showMsg('注册成功，请前往邮箱完成验证后再登录。','success');
   }catch(err){
     console.error('注册异常:',err);
-    showMsg('注册失败，请稍后重试。');
+    showMsg(err?.message==='注册超时'?'加载较慢，请稍后或刷新。':'保存失败，请稍后重试。');
   }finally{
     setButtonLoading(registerSubmitBtn,false,'注册账号');
   }

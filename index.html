@@ -406,7 +406,7 @@
         const {data,error}=await withTimeout(supabaseClient.auth.getSession(),5000,'获取登录状态超时');
         if(error){ alert('登录状态获取失败，请稍后重试。'); return; }
         const session=data&&data.session;
-        if(!session||!session.user||!session.user.id){ alert('请先登录。'); window.location.href='login.html'; return; }
+        if(!session||!session.user||!session.user.id){ alert('请先登录。'); window.location.replace('login.html'); return; }
         const companyName=getValue('company');
         if(!companyName){ alert('请先填写企业名称'); return; }
         const summaryText=((summaryEl&&summaryEl.textContent)||'').trim();
