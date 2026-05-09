@@ -50,8 +50,9 @@ input:focus{outline:none;border-color:#75a4e8;box-shadow:0 0 0 3px rgba(30,95,19
   <div id="message" class="msg"></div>
 </section></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded',()=>{
+
 const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co';
 const SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';
 const STORAGE_USERS='pt_users_v1',STORAGE_CURRENT='pt_current_user_v1';
@@ -171,5 +172,7 @@ const handleRegister=async()=>{
 
 loginSubmitBtn.addEventListener('click',handleLogin);
 registerSubmitBtn.addEventListener('click',handleRegister);
+
+});
 </script>
 </body></html>
