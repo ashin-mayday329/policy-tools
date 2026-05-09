@@ -358,7 +358,7 @@ async function saveCurrentRecord(){
  if(!supabaseClient){ alert('系统初始化失败，请刷新页面后重试。'); return; }
  const { data: { session }, error } = await supabaseClient.auth.getSession();
  if(error){ alert('登录状态获取失败，请稍后重试。'); return; }
- if(!session||!session.user||!session.user.id){ alert('请先登录'); window.location.href='login.html'; return; }
+ if(!session||!session.user||!session.user.id){ alert('请先登录。'); window.location.replace('login.html'); return; }
  if(!lastReportData||!lastPlainText.trim()){ alert('请先生成初筛报告'); return; }
  const company=($('company').value||'').trim();
  if(!company){ alert('请先填写企业名称'); return; }
