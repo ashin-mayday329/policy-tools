@@ -1,70 +1,17 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>走访记录查询</title>
-<style>:root{--bg:#eef4ff;--card:#fff;--line:#d6e3f6;--text:#1e304e;--primary:#1f5fbf}*{box-sizing:border-box}body{margin:0;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}.wrap{max-width:1180px;margin:18px auto;padding:0 14px}.top,.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 22px rgba(20,50,95,.08)}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px}.user{display:flex;align-items:center;gap:10px}.avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#dce9ff;display:flex;align-items:center;justify-content:center;font-weight:700}.avatar img{width:100%;height:100%;object-fit:cover}.btn{border:none;border-radius:9px;padding:8px 12px;cursor:pointer;color:#fff;background:linear-gradient(135deg,#1f5fbf,#1a4f9f);text-decoration:none}.btn.ghost{background:#6d82a1}.card{margin-top:12px;padding:14px}.search{width:100%;height:42px;padding:0 12px;border:1px solid var(--line);border-radius:10px}.table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{padding:10px;border-bottom:1px solid #e7eefb;text-align:left;vertical-align:top}.actions button{margin-right:6px}.muted{color:#607392}.modal{position:fixed;inset:0;background:rgba(14,30,55,.35);display:none;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}.panel{background:#fff;border-radius:12px;border:1px solid var(--line);padding:16px;max-width:760px;max-height:85vh;overflow:auto;width:100%}pre{white-space:pre-wrap;background:#f7faff;padding:10px;border-radius:8px;border:1px solid #dfebff}.foot{margin:18px 0;color:#5a708f;font-size:13px}@media(max-width:760px){.top{flex-direction:column;align-items:flex-start}.table{display:block;overflow:auto;white-space:nowrap}}</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><main class="wrap"><section class="top"><div class="user"><span id="avatar" class="avatar">人</span><div><div id="nickname">-</div><div class="muted">走访记录查询</div></div></div><div><a class="btn ghost" href="index.html">返回首页</a> <button id="logoutBtn" class="btn ghost">退出登录</button></div></section>
-<section class="card"><input id="search" class="search" placeholder="搜索企业名称、联系人、企业需求关键词"/><table class="table"><thead><tr><th>企业名称</th><th>联系人</th><th>联系电话</th><th>走访人员</th><th>企业需求摘要</th><th>后续动作</th><th>创建时间</th><th>更新时间</th><th>操作</th></tr></thead><tbody id="tbody"></tbody></table></section></main>
+<style>:root{--bg:#eef4ff;--card:#fff;--line:#d6e3f6;--text:#1e304e}*{box-sizing:border-box}body{margin:0;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}.wrap{max-width:1180px;margin:18px auto;padding:0 14px}.top,.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}.top{display:flex;justify-content:space-between}.btn{border:none;border-radius:9px;padding:8px 12px;color:#fff;background:#1f5fbf;cursor:pointer}.btn.ghost{background:#6d82a1}.search{width:100%;height:42px;padding:0 12px;border:1px solid var(--line);border-radius:10px}.table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{padding:10px;border-bottom:1px solid #e7eefb}.modal{position:fixed;inset:0;background:rgba(14,30,55,.35);display:none;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}.panel{background:#fff;border-radius:12px;border:1px solid var(--line);padding:16px;max-width:760px;max-height:85vh;overflow:auto;width:100%}pre{white-space:pre-wrap;background:#f7faff;padding:10px;border:1px solid #dfebff}.muted{color:#607392}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><main class="wrap"><section class="top"><div>走访记录查询</div><div><a class="btn ghost" href="index.html">返回首页</a> <button id="migrateBtn" class="btn">迁移本机走访记录到云端</button> <button id="logoutBtn" class="btn ghost">退出登录</button></div></section>
+<section class="card"><input id="search" class="search" placeholder="搜索企业名称、联系人、企业需求关键词"/><table class="table"><thead><tr><th>企业名称</th><th>联系人</th><th>联系电话</th><th>走访人员</th><th>企业需求摘要</th><th>创建时间</th><th>更新时间</th><th>操作</th></tr></thead><tbody id="tbody"></tbody></table></section></main>
 <div id="detailModal" class="modal"><div class="panel"><h3>走访记录详情</h3><div id="detail"></div><button id="copyBtn" class="btn">复制走访总结</button> <button id="closeBtn" class="btn ghost">关闭</button></div></div>
-
 <script>
-document.addEventListener('DOMContentLoaded', async () => {
-  const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co';
-  const SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';
-  const USERS='pt_users_v1';
-  const CUR='pt_current_user_v1';
-
-  const $=(id)=>document.getElementById(id);
-  const els={avatar:$('avatar'),nickname:$('nickname'),logoutBtn:$('logoutBtn'),search:$('search'),tbody:$('tbody'),detailModal:$('detailModal'),detail:$('detail'),closeBtn:$('closeBtn'),copyBtn:$('copyBtn')};
-  const safeBind=(el,event,fn)=>{ if(el) el.addEventListener(event,fn); };
-  const showAlert=(msg)=>window.alert(msg);
-
-  if(!window.supabase||typeof window.supabase.createClient!=='function'){
-    showAlert('Supabase 初始化失败，请刷新页面后重试。');
-    return;
-  }
-  const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-  const users=JSON.parse(localStorage.getItem(USERS)||'{}');
-  let current=(localStorage.getItem(CUR)||'').toLowerCase();
-  try{
-    const {data}=await supabase.auth.getSession();
-    const email=(data.session&&data.session.user&&data.session.user.email||'').toLowerCase();
-    if(email){ current=email; localStorage.setItem(CUR,email); }
-  }catch(_e){}
-  if(!current){ location.replace('login.html'); return; }
-  const key=`visitRecords_${current}`;
-  const fmt=(t)=>new Date(t||Date.now()).toLocaleString('zh-CN',{hour12:false});
-  const esc=(v)=>String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const getList=()=>JSON.parse(localStorage.getItem(key)||'[]');
-  let active=null;
-
-  function renderAvatar(){
-    if(!els.nickname||!els.avatar) return;
-    const u=users[current]||{};
-    els.nickname.textContent=u.nickname||current;
-    if(u.avatarDataUrl){ els.avatar.innerHTML=`<img src="${u.avatarDataUrl}" alt="头像">`; }
-    else { els.avatar.textContent=(u.nickname||current||'人')[0]; }
-  }
-
-  function render(){
-    if(!els.search||!els.tbody) return;
-    const kw=els.search.value.trim().toLowerCase();
-    const rows=getList().filter(r=>!kw||[r.company,r.contact,r.needs].join(' ').toLowerCase().includes(kw));
-    els.tbody.innerHTML=rows.map(r=>`<tr><td>${esc(r.company||'未填写')}</td><td>${esc(r.contact||'未填写')}</td><td>${esc(r.phone||'未填写')}</td><td>${esc(r.visitStaff||'未填写')}</td><td>${esc(r.needs||'未填写')}</td><td>${esc(r.followUp||'未填写')}</td><td>${fmt(r.createdAt)}</td><td>${fmt(r.updatedAt)}</td><td class="actions"><button class="btn" type="button" data-act="view" data-id="${r.id}">查看详情</button><button class="btn ghost" type="button" data-act="del" data-id="${r.id}">删除记录</button></td></tr>`).join('')||'<tr><td colspan="9" class="muted">暂无走访记录</td></tr>';
-  }
-  function openDetail(id){active=getList().find(i=>i.id===id);if(!active||!els.detail||!els.detailModal)return;els.detail.innerHTML=`<p><b>企业名称：</b>${esc(active.company||'未填写')}</p><p><b>联系人：</b>${esc(active.contact||'未填写')}</p><p><b>联系电话：</b>${esc(active.phone||'未填写')}</p><p><b>走访人员：</b>${esc(active.visitStaff||'未填写')}</p><p><b>企业需求摘要：</b>${esc(active.needs||'未填写')}</p><p><b>后续动作：</b>${esc(active.followUp||'未填写')}</p><pre>${esc(active.summary||'未生成走访总结')}</pre>`;els.detailModal.classList.add('show');}
-
-  function delRec(id){ if(!confirm('确定删除该记录吗？删除后无法恢复。')) return; localStorage.setItem(key,JSON.stringify(getList().filter(i=>i.id!==id))); render(); }
-
-  safeBind(els.search,'input',render);
-  safeBind(els.logoutBtn,'click', async ()=>{ await supabase.auth.signOut(); localStorage.removeItem(CUR); location.replace('login.html'); });
-  safeBind(els.closeBtn,'click', ()=>{ if(els.detailModal) els.detailModal.classList.remove('show'); });
-  safeBind(els.detailModal,'click', (e)=>{ if(e.target===els.detailModal) els.detailModal.classList.remove('show'); });
-  safeBind(els.copyBtn,'click', async ()=>{
-    const text=active&&(active.summary);
-    if(!text) return showAlert('暂无可复制内容。');
-    try{ await navigator.clipboard.writeText(text); showAlert('已复制。'); }catch(_e){ showAlert('复制失败，请手动复制。'); }
-  });
-  safeBind(els.tbody,'click',(e)=>{const btn=e.target.closest('button[data-act]'); if(!btn) return; const id=btn.dataset.id||''; if(btn.dataset.act==='view') openDetail(id); if(btn.dataset.act==='del') delRec(id);});
-
-  renderAvatar();
-  render();
-});
+document.addEventListener('DOMContentLoaded',async()=>{const supabase=window.supabase.createClient('https://gzuihbsvghmryybyphfl.supabase.co','sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl');const $=id=>document.getElementById(id);const safe=(el,e,f)=>el&&el.addEventListener(e,f);const fmt=t=>new Date(t||Date.now()).toLocaleString('zh-CN',{hour12:false});const esc=v=>String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const {data}=await supabase.auth.getSession();const session=data&&data.session;if(!session||!session.user){location.replace('login.html');return;}const uid=session.user.id,email=(session.user.email||'').toLowerCase();localStorage.setItem('pt_current_user_v1',email);
+let rows=[],active=null;
+async function load(){const {data,error}=await supabase.from('visit_records').select('*').eq('user_id',uid).order('updated_at',{ascending:false}).order('created_at',{ascending:false});if(error){alert('读取走访记录失败，请稍后重试。');return;}rows=data||[];render();}
+function render(){const kw=($('search').value||'').trim().toLowerCase();const list=rows.filter(r=>!kw||[r.company_name,r.contact_name,r.enterprise_needs].join(' ').toLowerCase().includes(kw));$('tbody').innerHTML=list.map(r=>`<tr><td>${esc(r.company_name||'未填写')}</td><td>${esc(r.contact_name||'未填写')}</td><td>${esc(r.contact_phone||'未填写')}</td><td>${esc(r.visit_staff||'未填写')}</td><td>${esc((r.enterprise_needs||'未填写').slice(0,60))}</td><td>${fmt(r.created_at)}</td><td>${fmt(r.updated_at||r.created_at)}</td><td><button class="btn" data-a="view" data-id="${r.id}">查看详情</button> <button class="btn ghost" data-a="del" data-id="${r.id}">删除记录</button></td></tr>`).join('')||'<tr><td colspan="8" class="muted">暂无走访记录</td></tr>'}
+function oldRecords(){const keys=[`visitRecords_${email}`,'visitRecords','records'];for(const k of keys){try{const v=JSON.parse(localStorage.getItem(k)||'[]');if(Array.isArray(v)&&v.length)return v;}catch(_){}}return[];}
+async function migrate(){const old=oldRecords();if(!old.length){alert('未找到可迁移的本机走访记录。');return;}const payload=old.map(r=>({user_id:uid,company_name:r.company||'',visit_staff:r.visitStaff||'',contact_name:r.contact||'',contact_phone:r.phone||'',office_address:r.address||'',basic_info:r.basic||'',enterprise_needs:r.needs||'',park_solution:r.followUp||r.solution||'',summary_text:r.summary||'',form_data:r.rawFormData||r.formData||r||{}}));const {error}=await supabase.from('visit_records').insert(payload);if(error){alert('迁移失败，请稍后重试。');return;}alert('本机走访记录已迁移到云端');load();}
+async function del(id){if(!confirm('请再次确认：确定删除该记录吗？'))return;if(!confirm('删除后不可恢复，是否继续？'))return;const {error}=await supabase.from('visit_records').delete().eq('id',id).eq('user_id',uid);if(error){alert('删除失败，请稍后重试。');return;}load();}
+safe($('search'),'input',render);safe($('logoutBtn'),'click',async()=>{await supabase.auth.signOut();localStorage.removeItem('pt_current_user_v1');location.replace('login.html');});safe($('migrateBtn'),'click',migrate);safe($('tbody'),'click',e=>{const b=e.target.closest('button[data-a]');if(!b)return;const id=b.dataset.id;const rec=rows.find(x=>String(x.id)===String(id));if(b.dataset.a==='view'&&rec){active=rec;$('detail').innerHTML=`<p><b>企业名称：</b>${esc(rec.company_name||'未填写')}</p><p><b>联系人：</b>${esc(rec.contact_name||'未填写')}</p><p><b>联系电话：</b>${esc(rec.contact_phone||'未填写')}</p><p><b>走访人员：</b>${esc(rec.visit_staff||'未填写')}</p><p><b>企业需求：</b>${esc(rec.enterprise_needs||'未填写')}</p><p><b>完整表单：</b></p><pre>${esc(JSON.stringify(rec.form_data||{},null,2))}</pre><p><b>走访总结：</b></p><pre>${esc(rec.summary_text||'未生成走访总结')}</pre>`;$('detailModal').classList.add('show');}if(b.dataset.a==='del'){del(id);}});safe($('closeBtn'),'click',()=>$('detailModal').classList.remove('show'));safe($('detailModal'),'click',e=>{if(e.target===$('detailModal'))$('detailModal').classList.remove('show')});safe($('copyBtn'),'click',async()=>{const t=active&&active.summary_text;if(!t){alert('暂无可复制内容。');return;}try{await navigator.clipboard.writeText(t);alert('已复制。');}catch(_){alert('复制失败，请手动复制。');}});
+load();});
 </script></body></html>
