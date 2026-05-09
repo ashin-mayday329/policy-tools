@@ -47,9 +47,9 @@
       <h2 class="section-title">功能导航</h2>
       <div class="nav-grid">
       <a class="card nav-card" href="#visitWorkbench" data-action="go-workbench"><h3>企业走访服务台账</h3><p>企业走访信息录入、生成总结、归档管理</p></a>
-      <a class="card nav-card" href="policy-screen.html"><h3>政策申报初筛工具</h3><p>企业政策匹配与初筛建议</p></a>
-      <a class="card nav-card" href="visit-records.html"><h3>走访记录查询</h3><p>查询、编辑、回填历史走访记录</p></a>
-      <a class="card nav-card" href="policy-records.html"><h3>企业初筛记录</h3><p>查看企业政策初筛历史台账</p></a>
+      <a id="policyScreenBtn" class="card nav-card" href="policy-screen.html"><h3>政策申报初筛工具</h3><p>企业政策匹配与初筛建议</p></a>
+      <a id="visitRecordsBtn" class="card nav-card" href="visit-records.html"><h3>走访记录查询</h3><p>查询、编辑、回填历史走访记录</p></a>
+      <a id="policyRecordsBtn" class="card nav-card" href="policy-records.html"><h3>企业初筛记录</h3><p>查看企业政策初筛历史台账</p></a>
     </div>
     </section>
     <section class="stats-grid">
@@ -407,6 +407,7 @@
       safeBind($('copyBtn'),'click',async()=>{ const text=(summaryEl&&summaryEl.textContent||'').trim(); if(!text||text.includes('点击“生成走访总结”')) return alert('请先生成走访总结，再复制。'); try{ await navigator.clipboard.writeText(text); alert('走访总结已复制。'); }catch(_){ alert('复制失败，请手动复制。'); } });
       safeBind($('clearBtn'),'click',()=>{ fieldIds.forEach((id)=>{ const el=$(id); if(el) el.value=''; }); if(summaryEl){ summaryEl.textContent=''; summaryEl.classList.add('hidden'); } if(summaryEmptyEl) summaryEmptyEl.classList.remove('hidden'); clearDraft(); });
       let editingRecordId='';
+      if($('saveVisitBtn')) $('saveVisitBtn').dataset.mode='create';
       const saveCurrentRecord=async()=>{
         const saveBtn=$('saveVisitBtn');
         const oldText=saveBtn?.textContent||'保存到走访记录';
@@ -437,6 +438,11 @@
           if(saveError){ console.error('保存走访记录失败:',saveError); alert(`保存失败：${saveError.message||'未知错误'}`); return; }
           alert('已保存到云端走访记录');
           clearDraft();
+          if(editingRecordId){
+            sessionStorage.removeItem('visitRecordEditing');
+            editingRecordId='';
+            if(saveBtn){ saveBtn.textContent='保存到走访记录'; saveBtn.dataset.mode='create'; }
+          }
           await loadRecentVisitRecords(); await loadDashboardStats();
         }catch(error){ console.error('保存走访记录异常:',error); alert(`保存失败：${error?.message||'未知错误'}`); }
         finally{ if(saveBtn){ saveBtn.disabled=false; saveBtn.textContent=oldText; } }
@@ -464,7 +470,7 @@
           const text=(editing.summary_text||'').trim();
           if(text&&summaryEl){ summaryEl.textContent=text; summaryEl.classList.remove('hidden'); summaryEmptyEl?.classList.add('hidden'); }
           const saveBtn=$('saveVisitBtn');
-          if(saveBtn) saveBtn.textContent='更新走访记录';
+          if(saveBtn) { saveBtn.textContent='更新走访记录'; saveBtn.dataset.mode='edit'; }
         }catch(err){ console.error('编辑回填失败:',err); }
       };
       restoreEditContext();
