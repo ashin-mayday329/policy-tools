@@ -180,12 +180,12 @@
           </div>
           <div id="authUser" class="hidden">
             <div class="user-entry">
-              <button id="openProfileBtn" class="profile-trigger" type="button">
+              <button id="openProfileBtn" data-action="open-profile" class="profile-trigger" type="button">
                 <span id="userAvatar" class="avatar">U</span>
                 <span id="userNickname" class="nickname">-</span>
               </button>
-              <button id="profileEntryBtn" class="auth-btn ghost" type="button">个人资料</button>
-              <button id="logoutBtn" class="auth-btn subtle" type="button">退出登录</button>
+              <button id="profileEntryBtn" data-action="open-profile" class="auth-btn ghost" type="button">个人资料</button>
+              <button id="logoutBtn" data-action="logout" class="auth-btn subtle" type="button">退出登录</button>
             </div>
           </div>
         </div>
@@ -258,8 +258,8 @@
         </div>
         <div><label for="profileNickname">昵称</label><input id="profileNickname" required /></div>
         <div class="actions">
-          <button type="submit">保存修改</button>
-          <button type="button" id="closeProfileBtn" class="cancel-btn">取消</button>
+          <button id="saveProfileBtn" data-action="save-profile" type="submit">保存修改</button>
+          <button type="button" id="closeProfileBtn" data-action="close-profile" class="cancel-btn">取消</button>
         </div>
       </form>
     </section>
@@ -314,27 +314,30 @@
       supabase.auth.onAuthStateChange(async(_e,session)=>{ const email=(session&&session.user&&session.user.email||'').toLowerCase(); if(email){ setCurrentUser(email); await ensureProfile(session); refreshAuthUI(); } else { setCurrentUser(''); window.location.replace('login.html'); } });
 
       safeBind($('openLoginBtn'),'click',()=>{ window.location.href='login.html'; });
-      safeBind($('logoutBtn'),'click',async(e)=>{
+      async function handleLogout(btn){
         console.log('logout clicked');
-        const btn=e.currentTarget; const oldText=btn&&btn.textContent;
+        const oldText=btn&&btn.textContent;
         if(btn){ btn.disabled=true; btn.textContent='退出中...'; }
+        const timeout=setTimeout(()=>window.location.replace('login.html'),5000);
         try{
-          const {error}=await supabase.auth.signOut();
-          if(error){ console.error(error); console.log('signOut failed', error); alert('退出登录失败，请刷新后重试。'); return; }
-          console.log('signOut success');
-          setCurrentUser('');
-          window.location.replace('login.html');
-        }catch(err){
-          console.error(err); console.log('signOut failed', err); alert('退出登录失败，请刷新后重试。');
-        }finally{ if(btn){ btn.disabled=false; btn.textContent=oldText||'退出登录'; } }
+          const {error}=await supabase.auth.signOut({ scope: 'local' });
+          if(error){ console.error(error); console.log('logout error'); }
+          else { console.log('logout success'); }
+        }catch(err){ console.error(err); console.log('logout error'); }
+        finally{ clearTimeout(timeout); window.location.replace('login.html'); if(btn){ btn.disabled=false; btn.textContent=oldText||'退出登录'; } }
+      }
+      document.addEventListener('click',(e)=>{
+        const btn=e.target.closest('button[data-action]');
+        if(!btn) return;
+        const action=btn.dataset.action;
+        if(action==='open-profile'){ console.log('open profile clicked'); $('profileModal')?.classList.add('show'); }
+        if(action==='close-profile'){ $('profileModal')?.classList.remove('show'); }
+        if(action==='logout'){ handleLogout(btn); }
       });
-      safeBind($('openProfileBtn'),'click',()=>$('profileModal')&&$('profileModal').classList.add('show'));
-      safeBind($('profileEntryBtn'),'click',()=>$('profileModal')&&$('profileModal').classList.add('show'));
-      safeBind($('closeProfileBtn'),'click',()=>$('profileModal')&&$('profileModal').classList.remove('show'));
       safeBind($('profileAvatarInput'),'change',(e)=>{ const file=e.target?.files?.[0]; if(!file) return; if(!ALLOWED_TYPES.includes(file.type)){ alert('仅支持 JPG、PNG、WEBP 格式头像。'); e.target.value=''; return; } if(file.size>MAX_AVATAR_SIZE){ alert('头像图片过大，请上传 2MB 以内的图片。'); e.target.value=''; return; } selectedAvatarFile=file; const url=URL.createObjectURL(file); renderAvatar($('profileAvatarPreview'),$('profileNickname')?.value||currentProfile?.nickname||'',url); });
-      safeBind($('profileForm'),'submit',async(e)=>{ e.preventDefault(); console.log('profile save clicked'); const submitBtn=e.submitter||$('profileForm')?.querySelector('button[type="submit"]'); const oldText=submitBtn&&submitBtn.textContent; if(submitBtn){ submitBtn.disabled=true; submitBtn.textContent='保存中...'; } try{ const {data,error}=await supabase.auth.getSession(); if(error||!data.session?.user?.id){ if(error) console.error(error); alert('请先登录后再修改个人资料'); window.location.replace('login.html'); return; } const session=data.session; console.log('current user id', session.user.id); const nickname=(($('profileNickname')||{}).value||'').trim(); if(!nickname){ alert('请输入昵称。'); return; } let avatarUrl=currentProfile?.avatar_url||''; if(selectedAvatarFile){ const ext=(selectedAvatarFile.name.split('.').pop()||'jpg').toLowerCase(); const path=`${session.user.id}/avatar-${Date.now()}.${ext}`; console.log('avatar upload path', path); const {error:upErr}=await supabase.storage.from(AVATAR_BUCKET).upload(path,selectedAvatarFile,{upsert:false,contentType:selectedAvatarFile.type}); if(upErr){ console.error(upErr); alert('头像上传失败：'+(upErr.message||'请稍后重试。')); return; } const {data:pub}=supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path); avatarUrl=(pub&&pub.publicUrl)||avatarUrl; }
+      safeBind($('profileForm'),'submit',async(e)=>{ e.preventDefault(); console.log('save profile clicked'); const submitBtn=e.submitter||$('profileForm')?.querySelector('button[type="submit"]'); const oldText=submitBtn&&submitBtn.textContent; if(submitBtn){ submitBtn.disabled=true; submitBtn.textContent='保存中...'; } try{ const {data,error}=await supabase.auth.getSession(); if(error||!data.session?.user?.id){ if(error) console.error(error); alert('请先登录后再修改个人资料'); window.location.replace('login.html'); return; } const session=data.session; console.log('current user id', session.user.id); const nickname=(($('profileNickname')||{}).value||'').trim(); if(!nickname){ alert('请输入昵称。'); return; } let avatarUrl=currentProfile?.avatar_url||''; if(selectedAvatarFile){ console.log('selected avatar file', selectedAvatarFile.name, selectedAvatarFile.size); const ext=(selectedAvatarFile.name.split('.').pop()||'jpg').toLowerCase(); const path=`${session.user.id}/avatar-${Date.now()}.${ext}`; console.log('avatar upload path', path); const {error:upErr}=await supabase.storage.from(AVATAR_BUCKET).upload(path,selectedAvatarFile,{upsert:false,contentType:selectedAvatarFile.type}); if(upErr){ console.error(upErr); console.log('avatar upload error'); alert('头像上传失败：'+(upErr.message||'请稍后重试。')); return; } console.log('avatar upload success'); const {data:pub}=supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path); avatarUrl=(pub&&pub.publicUrl)||avatarUrl; }
         const {data:updated,error:updateErr}=await supabase.from('profiles').upsert({id:session.user.id,email:(session.user.email||'').toLowerCase(),nickname,avatar_url:avatarUrl,updated_at:new Date().toISOString()},{onConflict:'id'}).select().single();
-        if(updateErr){ console.error(updateErr); alert('资料保存失败：'+(updateErr.message||'请稍后重试。')); return; }
+        if(updateErr){ console.error(updateErr); console.log('profile upsert error'); alert('资料保存失败：'+(updateErr.message||'请稍后重试。')); return; } console.log('profile upsert success');
         currentProfile=updated; const email=(session.user.email||'').toLowerCase(); const users=loadUsers(); users[email]={...(users[email]||{}),nickname,avatarDataUrl:avatarUrl||users[email]?.avatarDataUrl||''}; localStorage.setItem(STORAGE_USERS,JSON.stringify(users));
         refreshAuthUI(); renderAvatar($('profileAvatarPreview'),nickname,avatarUrl); selectedAvatarFile=null; if($('profileAvatarInput')) $('profileAvatarInput').value=''; $('profileModal')?.classList.remove('show'); alert('个人资料已保存');
       }catch(err){ console.error(err); alert('资料保存失败：'+(err?.message||'请稍后重试。')); }finally{ if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent=oldText||'保存修改'; } }});
