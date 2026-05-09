@@ -3,4 +3,68 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><main class="wrap"><section class="top"><div class="user"><span id="avatar" class="avatar">人</span><div><div id="nickname">-</div><div class="muted">企业初筛记录</div></div></div><div><a class="btn ghost" href="index.html">返回首页</a> <button id="logoutBtn" class="btn ghost">退出登录</button></div></section>
 <section class="card"><input id="search" class="search" placeholder="搜索企业名称、行业、综合建议关键词"/><table class="table"><thead><tr><th>企业名称</th><th>注册区县或注册地址</th><th>所属行业</th><th>主营产品或服务</th><th>综合建议</th><th>省科小</th><th>国科小</th><th>高企</th><th>市创</th><th>创建时间</th><th>更新时间</th><th>操作</th></tr></thead><tbody id="tbody"></tbody></table></section></main>
 <div id="detailModal" class="modal"><div class="panel"><h3>初筛报告详情</h3><div id="detail"></div><button id="copyBtn" class="btn">复制报告</button> <button id="closeBtn" class="btn ghost">关闭</button></div></div>
-<script>const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co',SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const USERS='pt_users_v1',CUR='pt_current_user_v1';const users=JSON.parse(localStorage.getItem(USERS)||'{}');const current=localStorage.getItem(CUR)||'';if(!current){location.replace('login.html');}const key=`policyRecords_${current}`;const fmt=(t)=>new Date(t||Date.now()).toLocaleString('zh-CN',{hour12:false});const esc=(v)=>String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));function renderAvatar(){const u=users[current]||{};nickname.textContent=u.nickname||current;if(u.avatarDataUrl){avatar.innerHTML=`<img src="${u.avatarDataUrl}" alt="头像">`}else{avatar.textContent=(u.nickname||current||'人')[0];}}const getList=()=>JSON.parse(localStorage.getItem(key)||'[]');function render(){const kw=search.value.trim().toLowerCase();const rows=getList().filter(r=>!kw||[r.company,r.industry,r.overall].join(' ').toLowerCase().includes(kw));tbody.innerHTML=rows.map(r=>`<tr><td>${esc(r.company||'未填写')}</td><td>${esc(r.district||'未填写')}</td><td>${esc(r.industry||'未填写')}</td><td>${esc(r.mainBiz||'未填写')}</td><td>${esc(r.overall||'未填写')}</td><td>${esc(r.skRes||'未填写')}</td><td>${esc(r.gkRes||'未填写')}</td><td>${esc(r.hqRes||'未填写')}</td><td>${esc(r.scRes||'未填写')}</td><td>${fmt(r.createdAt)}</td><td>${fmt(r.updatedAt)}</td><td class="actions"><button class="btn" onclick="view('${r.id}')">查看报告</button><button class="btn ghost" onclick="delRec('${r.id}')">删除记录</button></td></tr>`).join('')||'<tr><td colspan="12" class="muted">暂无企业初筛记录</td></tr>';}let active=null;function view(id){active=getList().find(i=>i.id===id);if(!active)return;detail.innerHTML=`<p><b>企业名称：</b>${esc(active.company||'未填写')}</p><p><b>注册区县或注册地址：</b>${esc(active.district||'未填写')}</p><p><b>所属行业：</b>${esc(active.industry||'未填写')}</p><p><b>主营产品或服务：</b>${esc(active.mainBiz||'未填写')}</p><p><b>综合建议：</b>${esc(active.overall||'未填写')}</p><p><b>省科小：</b>${esc(active.skRes||'未填写')} ｜ <b>国科小：</b>${esc(active.gkRes||'未填写')} ｜ <b>高企：</b>${esc(active.hqRes||'未填写')} ｜ <b>市创：</b>${esc(active.scRes||'未填写')}</p><pre>${esc(active.reportText||'未生成报告文本')}</pre>`;detailModal.classList.add('show');}function delRec(id){if(!confirm('确定删除该企业初筛记录吗？删除后无法恢复。'))return;const list=getList().filter(i=>i.id!==id);localStorage.setItem(key,JSON.stringify(list));render();}search.addEventListener('input',render);logoutBtn.onclick=async()=>{await supabase.auth.signOut();localStorage.removeItem(CUR);location.replace('login.html');};closeBtn.onclick=()=>detailModal.classList.remove('show');detailModal.onclick=(e)=>{if(e.target===detailModal)detailModal.classList.remove('show');};copyBtn.onclick=async()=>{if(!active||!active.reportText)return alert('暂无可复制报告。');try{await navigator.clipboard.writeText(active.reportText);alert('报告已复制。');}catch{alert('复制失败，请手动复制。');}};renderAvatar();render();</script></body></html>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co';
+  const SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';
+  const USERS='pt_users_v1';
+  const CUR='pt_current_user_v1';
+
+  const $=(id)=>document.getElementById(id);
+  const els={avatar:$('avatar'),nickname:$('nickname'),logoutBtn:$('logoutBtn'),search:$('search'),tbody:$('tbody'),detailModal:$('detailModal'),detail:$('detail'),closeBtn:$('closeBtn'),copyBtn:$('copyBtn')};
+  const safeBind=(el,event,fn)=>{ if(el) el.addEventListener(event,fn); };
+  const showAlert=(msg)=>window.alert(msg);
+
+  if(!window.supabase||typeof window.supabase.createClient!=='function'){
+    showAlert('Supabase 初始化失败，请刷新页面后重试。');
+    return;
+  }
+  const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  const users=JSON.parse(localStorage.getItem(USERS)||'{}');
+  let current=(localStorage.getItem(CUR)||'').toLowerCase();
+  try{
+    const {data}=await supabase.auth.getSession();
+    const email=(data.session&&data.session.user&&data.session.user.email||'').toLowerCase();
+    if(email){ current=email; localStorage.setItem(CUR,email); }
+  }catch(_e){}
+  if(!current){ location.replace('login.html'); return; }
+  const key=`policyRecords_${current}`;
+  const fmt=(t)=>new Date(t||Date.now()).toLocaleString('zh-CN',{hour12:false});
+  const esc=(v)=>String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const getList=()=>JSON.parse(localStorage.getItem(key)||'[]');
+  let active=null;
+
+  function renderAvatar(){
+    if(!els.nickname||!els.avatar) return;
+    const u=users[current]||{};
+    els.nickname.textContent=u.nickname||current;
+    if(u.avatarDataUrl){ els.avatar.innerHTML=`<img src="${u.avatarDataUrl}" alt="头像">`; }
+    else { els.avatar.textContent=(u.nickname||current||'人')[0]; }
+  }
+
+  function render(){
+    if(!els.search||!els.tbody) return;
+    const kw=els.search.value.trim().toLowerCase();
+    const rows=getList().filter(r=>!kw||[r.company,r.industry,r.overall].join(' ').toLowerCase().includes(kw));
+    els.tbody.innerHTML=rows.map(r=>`<tr><td>${esc(r.company||'未填写')}</td><td>${esc(r.district||'未填写')}</td><td>${esc(r.industry||'未填写')}</td><td>${esc(r.mainBiz||'未填写')}</td><td>${esc(r.overall||'未填写')}</td><td>${esc(r.skRes||'未填写')}</td><td>${esc(r.gkRes||'未填写')}</td><td>${esc(r.hqRes||'未填写')}</td><td>${esc(r.scRes||'未填写')}</td><td>${fmt(r.createdAt)}</td><td>${fmt(r.updatedAt)}</td><td class="actions"><button class="btn" type="button" data-act="view" data-id="${r.id}">查看报告</button><button class="btn ghost" type="button" data-act="del" data-id="${r.id}">删除记录</button></td></tr>`).join('')||'<tr><td colspan="12" class="muted">暂无企业初筛记录</td></tr>';
+  }
+  function openDetail(id){active=getList().find(i=>i.id===id);if(!active||!els.detail||!els.detailModal)return;els.detail.innerHTML=`<p><b>企业名称：</b>${esc(active.company||'未填写')}</p><p><b>注册区县或注册地址：</b>${esc(active.district||'未填写')}</p><p><b>所属行业：</b>${esc(active.industry||'未填写')}</p><p><b>主营产品或服务：</b>${esc(active.mainBiz||'未填写')}</p><p><b>综合建议：</b>${esc(active.overall||'未填写')}</p><p><b>省科小：</b>${esc(active.skRes||'未填写')} ｜ <b>国科小：</b>${esc(active.gkRes||'未填写')} ｜ <b>高企：</b>${esc(active.hqRes||'未填写')} ｜ <b>市创：</b>${esc(active.scRes||'未填写')}</p><pre>${esc(active.reportText||'未生成报告文本')}</pre>`;els.detailModal.classList.add('show');}
+
+  function delRec(id){ if(!confirm('确定删除该记录吗？删除后无法恢复。')) return; localStorage.setItem(key,JSON.stringify(getList().filter(i=>i.id!==id))); render(); }
+
+  safeBind(els.search,'input',render);
+  safeBind(els.logoutBtn,'click', async ()=>{ await supabase.auth.signOut(); localStorage.removeItem(CUR); location.replace('login.html'); });
+  safeBind(els.closeBtn,'click', ()=>{ if(els.detailModal) els.detailModal.classList.remove('show'); });
+  safeBind(els.detailModal,'click', (e)=>{ if(e.target===els.detailModal) els.detailModal.classList.remove('show'); });
+  safeBind(els.copyBtn,'click', async ()=>{
+    const text=active&&(active.reportText);
+    if(!text) return showAlert('暂无可复制内容。');
+    try{ await navigator.clipboard.writeText(text); showAlert('已复制。'); }catch(_e){ showAlert('复制失败，请手动复制。'); }
+  });
+  safeBind(els.tbody,'click',(e)=>{const btn=e.target.closest('button[data-act]'); if(!btn) return; const id=btn.dataset.id||''; if(btn.dataset.act==='view') openDetail(id); if(btn.dataset.act==='del') delRec(id);});
+
+  renderAvatar();
+  render();
+});
+</script></body></html>
