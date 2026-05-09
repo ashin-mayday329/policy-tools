@@ -4,35 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>企业科技政策申报初筛工具</title>
-  <style>
-    :root{--bg:#edf3fc;--card:#fff;--text:#1b2f4e;--muted:#5f7190;--primary:#1f5fbf;--primary2:#114b9d;--line:#d8e3f5}
-    *{box-sizing:border-box} body{margin:0;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
-    .wrap{max-width:1100px;margin:20px auto;padding:0 14px 30px}
-    .hero{background:linear-gradient(135deg,#1552ac,#2672d8);color:#fff;padding:18px 20px;border-radius:14px;box-shadow:0 8px 24px rgba(20,60,120,.16)}
-    .hero h1{margin:0 0 6px;font-size:26px}.hero p{margin:0;opacity:.95;font-size:14px}
-    .card{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 8px 24px rgba(15,45,90,.06)}
-    h2{margin:0 0 12px;font-size:18px;color:#123f80}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}
-    label{display:block;margin:0 0 6px;font-weight:600;font-size:14px}input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfdff}
-    textarea{min-height:76px;resize:vertical}.actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
-    button,a.btn{border:none;padding:10px 16px;border-radius:10px;color:#fff;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
-    #genBtn{background:linear-gradient(135deg,var(--primary),var(--primary2))}#copyBtn{background:#0d86ad}#wordBtn{background:#2a7a4f}#clearBtn{background:#6b7f9d}
-    .result{margin:16px auto 0;border:1px solid #b8cff2;background:#f4f8ff;border-radius:12px;padding:14px;max-width:920px}
-    .report-card{background:#fff;border:1px solid #d7e2f2;border-radius:10px;padding:16px;color:#1f2d45}
-    .report-title{text-align:center;font-size:20px;font-weight:700;color:#123f80;margin:0 0 12px}
-    .report-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;font-size:14px;margin-bottom:12px;color:#23344d}
-    .report-section{border-top:1px solid #e5ecf8;padding-top:12px;margin-top:12px}
-    .report-section h3{margin:0 0 8px;color:#123f80;font-size:16px}
-    .policy-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .policy-item{border:1px solid #dfe8f7;border-radius:10px;padding:10px;background:#fcfdff}
-    .policy-item h4{margin:0 0 8px;color:#153f79;font-size:15px}
-    .kv{margin:5px 0;font-size:14px;color:#1f2d45}
-    .num-list{margin:4px 0 0 18px;padding:0}
-    .num-list li{margin:2px 0;color:#2b3a52}
-    .report-tip{margin-top:10px;padding:8px;border:1px dashed #c5d6f1;border-radius:8px;background:#f8fbff;font-size:13px;color:#415876}
-    .report-empty{color:#5a6d8f;padding:12px;background:#fff;border:1px dashed #ccd9ef;border-radius:8px}
-    .tip{margin-top:14px;color:#2f4668;font-size:13px;background:#f7fbff;border:1px dashed #b7ccef;border-radius:10px;padding:10px}
-    @media (max-width:760px){.grid,.policy-grid,.report-meta{grid-template-columns:1fr}}
-  </style>
+  <link rel="stylesheet" href="assets/app.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
 <body>
 <script>
