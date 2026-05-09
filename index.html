@@ -295,8 +295,8 @@
 
       const getValue=(id)=>(($(id)||{}).value||'').trim(); const summaryEl=$('summary'); const fieldIds=['company','visitStaff','contact','phone','address','basic','needs','solution'];
       safeBind($('generateBtn'),'click',()=>{ const company=getValue('company')||'某企业'; const text=`${company}走访总结
-走访时间：${new Date().toLocaleDateString('zh-CN')}`; if(summaryEl) summaryEl.textContent=text+'
-（内容已生成）'; });
+走访时间：${new Date().toLocaleDateString('zh-CN')}`; if(summaryEl) summaryEl.textContent=`${text}
+（内容已生成）`; });
       safeBind($('copyBtn'),'click',async()=>{ const text=(summaryEl&&summaryEl.textContent||'').trim(); if(!text||text.includes('点击“生成走访总结”')) return alert('请先生成走访总结，再复制。'); try{ await navigator.clipboard.writeText(text); alert('走访总结已复制。'); }catch(_){ alert('复制失败，请手动复制。'); } });
       safeBind($('clearBtn'),'click',()=>{ fieldIds.forEach((id)=>{ const el=$(id); if(el) el.value=''; }); if(summaryEl) summaryEl.textContent='（点击“生成走访总结”后会显示在这里）'; });
       safeBind($('saveVisitBtn'),'click',async()=>{ const {data}=await supabase.auth.getSession(); const email=(data.session&&data.session.user&&data.session.user.email||'').toLowerCase(); if(!email){ alert('请先登录。'); window.location.href='login.html'; return; } const key=`visitRecords_${email}`; const list=JSON.parse(localStorage.getItem(key)||'[]'); const rec={id:`v_${Date.now()}`,company:getValue('company'),visitStaff:getValue('visitStaff'),contact:getValue('contact'),phone:getValue('phone'),address:getValue('address'),basic:getValue('basic'),needs:getValue('needs'),followUp:getValue('solution'),summary:(summaryEl&&summaryEl.textContent)||'',createdAt:Date.now(),updatedAt:Date.now()}; list.unshift(rec); localStorage.setItem(key,JSON.stringify(list)); alert('已保存到走访记录。'); });
