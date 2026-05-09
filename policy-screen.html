@@ -36,16 +36,22 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
 <body>
 <script>
-window.ptSupabase = window.supabase && window.supabase.createClient
-  ? window.supabase.createClient('https://gzuihbsvghmryybyphfl.supabase.co', 'sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl')
-  : null;
+const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co';
+const SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';
+const initSupabaseClient=()=>{
+  if(window.supabaseClient&&window.supabaseClient.auth) return window.supabaseClient;
+  if(!window.supabase||typeof window.supabase.createClient!=='function') return null;
+  window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  return window.supabaseClient;
+};
 (async function(){
-  if(!window.ptSupabase){
+  const client=initSupabaseClient();
+  if(!client){
     console.error('Supabase client 初始化失败');
     alert('系统初始化失败，请刷新页面重试。');
     return;
   }
-  const { data } = await window.ptSupabase.auth.getSession();
+  const { data } = await client.auth.getSession();
   const email=(data.session&&data.session.user&&data.session.user.email)||'';
   if(!email){localStorage.removeItem('pt_current_user_v1');window.location.replace('login.html');return;}
   localStorage.setItem('pt_current_user_v1',email.toLowerCase());
@@ -182,9 +188,9 @@ window.ptSupabase = window.supabase && window.supabase.createClient
   </main>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  async function handleLogout(btn){console.log('logout clicked');const old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='退出中...';}const timeout=setTimeout(()=>window.location.replace('login.html'),5000);try{const {error}=await window.ptSupabase.auth.signOut({ scope: 'local' });if(error){console.error(error);console.log('logout error');}else{console.log('logout success');}}catch(err){console.error(err);console.log('logout error');}finally{clearTimeout(timeout);window.location.replace('login.html');if(btn){btn.disabled=false;btn.textContent=old||'退出登录';}}}
+  const withTimeout=(promise,ms,msg)=>Promise.race([promise,new Promise((_,rej)=>setTimeout(()=>rej(new Error(msg)),ms))]);async function handleLogout(btn){console.log('logout clicked');const old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='退出中...';}try{if(window.supabaseClient&&window.supabaseClient.auth){await withTimeout(window.supabaseClient.auth.signOut(),5000,'退出登录超时');console.log('logout success');}}catch(err){console.error('logout error or timeout:',err);}finally{window.location.replace('login.html?logged_out=1');if(btn){btn.disabled=false;btn.textContent=old||'退出登录';}}}
   document.addEventListener('click',(e)=>{const btn=e.target.closest('button[data-action]');if(!btn)return;if(btn.dataset.action==='open-profile'){console.log('open profile clicked');window.location.href='index.html';}if(btn.dataset.action==='logout'){handleLogout(btn);}});
-const supabaseClient = window.ptSupabase;
+const supabaseClient = window.supabaseClient;
 const $ = (id)=>document.getElementById(id);
 const safeBind=(el,evt,fn)=>{ if(el) el.addEventListener(evt,fn); };
 const num = (id)=>Number($(id).value||0);
