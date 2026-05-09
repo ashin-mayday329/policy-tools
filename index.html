@@ -69,20 +69,20 @@
         <article class="form-group">
           <h3>企业基础信息</h3>
           <div class="form-grid">
-        <div><label for="company">企业名称</label><input id="company" placeholder="例如：宁波云论光电力科技有限公司" /></div>
-        <div><label for="visitStaff">走访人员</label><input id="visitStaff" placeholder="例如：张三、李四" /></div>
-        <div><label for="contact">联系人</label><input id="contact" placeholder="例如：王经理" /></div>
-        <div><label for="phone">联系电话</label><input id="phone" placeholder="例如：13800000000" /></div>
-        <div class="full-row"><label for="address">企业实际办公地</label><input id="address" placeholder="例如：宁波市鄞州区XX路XX号XX楼" /></div>
+        <div><label for="company">企业名称</label><input id="company" data-field="company_name" placeholder="例如：宁波云论光电力科技有限公司" /></div>
+        <div><label for="visitStaff">走访人员</label><input id="visitStaff" data-field="visit_staff" placeholder="例如：张三、李四" /></div>
+        <div><label for="contact">联系人</label><input id="contact" data-field="contact_name" placeholder="例如：王经理" /></div>
+        <div><label for="phone">联系电话</label><input id="phone" data-field="contact_phone" placeholder="例如：13800000000" /></div>
+        <div class="full-row"><label for="address">企业实际办公地</label><input id="address" data-field="office_address" placeholder="例如：宁波市鄞州区XX路XX号XX楼" /></div>
           </div>
         </article>
 
         <article class="form-group">
           <h3>走访内容</h3>
           <div class="form-stack">
-            <div><label for="basic">企业基本情况</label><textarea id="basic" placeholder="可填写业务板块、人员规模、发展方向等"></textarea></div>
-            <div><label for="needs">企业需求</label><textarea id="needs" placeholder="可填写场地、融资、招工、市场对接、政策配套等诉求"></textarea></div>
-            <div><label for="solution">园区解决方案</label><textarea id="solution" placeholder="可填写已对接事项、责任部门、下一步推进建议"></textarea></div>
+            <div><label for="basic">企业基本情况</label><textarea id="basic" data-field="basic_info" placeholder="可填写业务板块、人员规模、发展方向等"></textarea></div>
+            <div><label for="needs">企业需求</label><textarea id="needs" data-field="enterprise_needs" placeholder="可填写场地、融资、招工、市场对接、政策配套等诉求"></textarea></div>
+            <div><label for="solution">园区解决方案</label><textarea id="solution" data-field="park_solution" placeholder="可填写已对接事项、责任部门、下一步推进建议"></textarea></div>
           </div>
         </article>
         </section>
@@ -94,7 +94,7 @@
           <div class="empty-icon">✦</div>
           <p>点击生成后将在此处展示走访总结</p>
         </div>
-        <p id="summary" class="summary-text hidden"></p>
+        <p id="summary" data-field="summary_text" class="summary-text hidden"></p>
         <div class="action-grid">
           <button id="generateBtn" class="btn btn-primary" type="button">生成走访总结</button>
           <button id="copyBtn" class="btn btn-secondary" type="button">复制总结</button>
@@ -262,7 +262,7 @@
           clearTimeout(slowTimer);
           await ensureProfile(session);
           await loadDashboardStats();
-          await loadRecentVisitRecords();
+          await legacyLoadRecentVisitRecords();
           restoreDraft();
         }catch(e){
           clearTimeout(slowTimer);
@@ -273,7 +273,7 @@
       })();
       supabaseClient.auth.onAuthStateChange(async(_e,session)=>{ cacheSession(session); const email=(session&&session.user&&session.user.email||'').toLowerCase(); if(email){ setCurrentUser(email); await ensureProfile(session);
           await loadDashboardStats();
-          await loadRecentVisitRecords(); refreshAuthUI(); } else { cacheSession(null); setCurrentUser(''); window.location.replace('login.html'); } });
+          await legacyLoadRecentVisitRecords(); refreshAuthUI(); } else { cacheSession(null); setCurrentUser(''); window.location.replace('login.html'); } });
 
       safeBind($('openLoginBtn'),'click',()=>{ window.location.href='login.html'; });
       async function handleLogout(button){
@@ -303,7 +303,7 @@
 
       
       const formatTime=(v)=>{ if(!v) return '--'; const d=new Date(v); if(Number.isNaN(d.getTime())) return '--'; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
-      async function loadRecentVisitRecords(){
+      async function legacyLoadRecentVisitRecords(){
         const wrap=$('recentRecordsList'); if(!wrap) return;
         let user;
         try{
@@ -408,7 +408,7 @@
       safeBind($('clearBtn'),'click',()=>{ fieldIds.forEach((id)=>{ const el=$(id); if(el) el.value=''; }); if(summaryEl){ summaryEl.textContent=''; summaryEl.classList.add('hidden'); } if(summaryEmptyEl) summaryEmptyEl.classList.remove('hidden'); clearDraft(); });
       let editingRecordId='';
       if($('saveVisitBtn')) $('saveVisitBtn').dataset.mode='create';
-      const saveCurrentRecord=async()=>{
+      const legacySaveCurrentRecord=async()=>{
         const saveBtn=$('saveVisitBtn');
         if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='保存中...'; }
         try{
@@ -442,7 +442,7 @@
             editingRecordId='';
             if(saveBtn){ saveBtn.textContent='保存到走访记录'; saveBtn.dataset.mode='create'; }
           }
-          await loadRecentVisitRecords(); await loadDashboardStats();
+          await legacyLoadRecentVisitRecords(); await loadDashboardStats();
         }catch(error){ console.error('保存走访记录异常:',error); alert(`保存失败：${error?.message||'未知错误'}`); }
         finally{
           if(saveBtn){
@@ -453,7 +453,7 @@
       };
       document.addEventListener('click', function(event) {
         const saveBtn = event.target.closest('[data-action="save-visit-record"]');
-        if (saveBtn) { event.preventDefault(); saveCurrentRecord(); }
+        if (saveBtn) { event.preventDefault(); legacySaveCurrentRecord(); }
       });
       document.addEventListener('click',(event)=>{
         const workbenchBtn=event.target.closest('[data-action="go-workbench"]');
@@ -480,6 +480,115 @@
       restoreEditContext();
       refreshAuthUI();
     });
+  </script>
+
+  <script>
+    // final homepage repair script
+    (function(){
+      const $=(id)=>document.getElementById(id);
+      const supabaseClient=window.supabaseClient;
+      if(!supabaseClient) return;
+      window.editingVisitRecordId=window.editingVisitRecordId||'';
+
+      function finalReadField(ids, dataField){
+        for(const id of ids){ const el=$(id); if(el) return (el.value||'').trim(); }
+        const byData=document.querySelector(`[data-field="${dataField}"]`);
+        return byData ? (byData.value||'').trim() : '';
+      }
+
+      async function finalGetCurrentUser(){
+        if(window.currentUser&&window.currentUser.id) return window.currentUser;
+        if(typeof currentUser!=='undefined'&&currentUser&&currentUser.id) return currentUser;
+        let sessionData = await supabaseClient.auth.getSession();
+        let session=sessionData?.data?.session;
+        if(session?.user){ window.currentUser=session.user; window.currentSession=session; return session.user; }
+        const keys=[];
+        for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i)||''; if(k==='policy-tools-auth'||(k.startsWith('sb-')&&k.includes('auth-token'))||k.includes('supabase.auth.token')) keys.push(k); }
+        for(const k of keys){
+          try{
+            const raw=localStorage.getItem(k); if(!raw) continue;
+            const parsed=JSON.parse(raw);
+            const cand=parsed?.currentSession||parsed?.session||parsed;
+            const at=cand?.access_token, rt=cand?.refresh_token, uid=cand?.user?.id;
+            if(at&&rt&&uid){
+              await supabaseClient.auth.setSession({access_token:at,refresh_token:rt});
+              const retry=await supabaseClient.auth.getSession();
+              const retryUser=retry?.data?.session?.user;
+              if(retryUser){ window.currentUser=retryUser; window.currentSession=retry.data.session; return retryUser; }
+            }
+          }catch(e){ console.warn('恢复会话失败:',e); }
+        }
+        alert('请重新登录');
+        window.location.replace('login.html');
+        throw new Error('请重新登录');
+      }
+
+      async function finalLoadRecentVisits(){
+        const wrap=$('recentRecordsList'); if(!wrap) return;
+        wrap.innerHTML='<p class="empty-records">加载中...</p>';
+        try{
+          const user=await finalGetCurrentUser();
+          const {data,error}=await supabaseClient.from('visit_records').select('id,company_name,contact_name,contact_phone,enterprise_needs,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(3);
+          if(error) throw error;
+          if(!data||!data.length){ wrap.innerHTML='<p class="empty-records">暂无最近记录</p>'; return; }
+          wrap.innerHTML=data.map(r=>`<article class="record-card"><div class="record-head"><h3>${r.company_name||'未命名企业'}</h3><time>${new Date(r.created_at).toLocaleString('zh-CN')}</time></div><div class="record-meta"><span>👤 ${r.contact_name||'未填写'}</span><span>📞 ${r.contact_phone||'未填写'}</span></div><p class="record-summary">${(r.enterprise_needs||'未填写企业需求').slice(0,80)}</p></article>`).join('');
+        }catch(error){ console.error(error); wrap.innerHTML='<p class="empty-records">最近记录加载失败</p>'; }
+      }
+
+      async function finalSaveVisitRecord(button){
+        const original=(button?.textContent||'保存到走访记录').trim();
+        button.disabled=true; button.textContent='保存中...';
+        try{
+          const user=await finalGetCurrentUser();
+          const companyName=finalReadField(['company','company_name'],'company_name');
+          if(!companyName) throw new Error('请先填写企业名称');
+          const summaryText=finalReadField(['summary','summary_text'],'summary_text');
+          if(!summaryText) throw new Error('请先生成走访总结');
+          const payload={
+            user_id:user.id,
+            company_name:companyName,
+            visit_staff:finalReadField(['visitStaff','visit_staff'],'visit_staff'),
+            contact_name:finalReadField(['contact','contact_name'],'contact_name'),
+            contact_phone:finalReadField(['phone','contact_phone'],'contact_phone'),
+            office_address:finalReadField(['address','office_address'],'office_address'),
+            basic_info:finalReadField(['basic','basic_info'],'basic_info'),
+            enterprise_needs:finalReadField(['needs','enterprise_needs'],'enterprise_needs'),
+            park_solution:finalReadField(['solution','park_solution'],'park_solution'),
+            summary_text:summaryText,
+            form_data:{company_name:companyName,visit_staff:finalReadField(['visitStaff','visit_staff'],'visit_staff'),contact_name:finalReadField(['contact','contact_name'],'contact_name'),contact_phone:finalReadField(['phone','contact_phone'],'contact_phone'),office_address:finalReadField(['address','office_address'],'office_address'),basic_info:finalReadField(['basic','basic_info'],'basic_info'),enterprise_needs:finalReadField(['needs','enterprise_needs'],'enterprise_needs'),park_solution:finalReadField(['solution','park_solution'],'park_solution')},
+          };
+          const editId=window.editingVisitRecordId||new URLSearchParams(location.search).get('editId')||'';
+          let error;
+          if(editId){ ({error}=await supabaseClient.from('visit_records').update(payload).eq('id',editId).eq('user_id',user.id)); }
+          else { ({error}=await supabaseClient.from('visit_records').insert(payload)); }
+          if(error) throw error;
+          alert('已保存到云端走访记录');
+          window.editingVisitRecordId='';
+          sessionStorage.removeItem('visitRecordEditing');
+          const keyPrefix='visitDraft_'; Object.keys(localStorage).forEach(k=>{ if(k.startsWith(keyPrefix)) localStorage.removeItem(k); });
+          await finalLoadRecentVisits();
+          if(typeof window.finalLoadDashboardStats==='function') await window.finalLoadDashboardStats();
+        }catch(error){ console.error('保存走访记录失败：', error); alert('保存失败：'+(error?.message||error)); }
+        finally{ button.disabled=false; button.textContent=(window.editingVisitRecordId||new URLSearchParams(location.search).get('editId'))?'更新走访记录':'保存到走访记录'; }
+      }
+
+      window.finalGetCurrentUser=finalGetCurrentUser;
+      window.finalLoadRecentVisits=finalLoadRecentVisits;
+      window.finalLoadDashboardStats=window.loadDashboardStats||null;
+      window.finalSaveVisitRecord=finalSaveVisitRecord;
+
+      document.addEventListener('click', async function(event) {
+        const btn = event.target.closest('[data-action="save-visit-record"], #saveVisitBtn, #saveRecordBtn, #saveVisitRecordBtn');
+        if (!btn) return;
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        await finalSaveVisitRecord(btn);
+      }, true);
+
+      document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(()=>finalLoadRecentVisits(),0); });
+      setTimeout(()=>finalLoadRecentVisits(),50);
+    })();
   </script>
 
 </body>
