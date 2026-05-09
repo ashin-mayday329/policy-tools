@@ -35,21 +35,22 @@ input:focus{outline:none;border-color:#75a4e8;box-shadow:0 0 0 3px rgba(30,95,19
 </section>
 <section class="panel">
   <div class="tabs"><button id="tabLogin" class="tab active" type="button">登录</button><button id="tabRegister" class="tab" type="button">注册</button></div>
-  <form id="loginForm">
+  <form id="loginForm" novalidate>
     <label>邮箱</label><input id="loginEmail" type="email" required>
     <label>密码</label><input id="loginPassword" type="password" required>
-    <button class="submit" type="submit">登录并进入系统</button>
+    <button class="submit" id="loginSubmitBtn" type="button">登录并进入系统</button>
   </form>
-  <form id="registerForm" class="hidden">
+  <form id="registerForm" class="hidden" novalidate>
     <label>邮箱</label><input id="regEmail" type="email" required>
     <label>密码</label><input id="regPassword" type="password" required>
     <label>确认密码</label><input id="regConfirmPassword" type="password" required>
     <label>昵称</label><input id="regNickname" required>
-    <button class="submit" type="submit">注册账号</button>
+    <button class="submit" id="registerSubmitBtn" type="button">注册账号</button>
   </form>
   <div id="message" class="msg"></div>
 </section></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co';
 const SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';
@@ -68,8 +69,8 @@ const regEmailInput=document.getElementById('regEmail');
 const regPasswordInput=document.getElementById('regPassword');
 const regConfirmPasswordInput=document.getElementById('regConfirmPassword');
 const regNicknameInput=document.getElementById('regNickname');
-const loginSubmitBtn=loginForm.querySelector('button[type="submit"]');
-const registerSubmitBtn=registerForm.querySelector('button[type="submit"]');
+const loginSubmitBtn=document.getElementById('loginSubmitBtn');
+const registerSubmitBtn=document.getElementById('registerSubmitBtn');
 
 const showMsg=(text,type='error')=>{msgEl.textContent=text||'操作失败，请稍后重试。';msgEl.className=`msg show ${type}`;};
 const clearMsg=()=>{msgEl.textContent='';msgEl.className='msg';};
@@ -105,8 +106,7 @@ try{
 tabLoginBtn.addEventListener('click',()=>setTab(true));
 tabRegisterBtn.addEventListener('click',()=>setTab(false));
 
-loginForm.addEventListener('submit',async(e)=>{
-  e.preventDefault();
+const handleLogin=async()=>{
   if(!supabaseClient) return showMsg('系统初始化失败，请刷新页面后重试。');
   const email=loginEmailInput.value.trim().toLowerCase();
   const password=loginPasswordInput.value;
@@ -130,10 +130,9 @@ loginForm.addEventListener('submit',async(e)=>{
   }finally{
     setButtonLoading(loginSubmitBtn,false,'登录并进入系统');
   }
-});
+};
 
-registerForm.addEventListener('submit',async(e)=>{
-  e.preventDefault();
+const handleRegister=async()=>{
   if(!supabaseClient) return showMsg('系统初始化失败，请刷新页面后重试。');
   const email=regEmailInput.value.trim().toLowerCase();
   const password=regPasswordInput.value;
@@ -168,6 +167,9 @@ registerForm.addEventListener('submit',async(e)=>{
   }finally{
     setButtonLoading(registerSubmitBtn,false,'注册账号');
   }
-});
+};
+
+loginSubmitBtn.addEventListener('click',handleLogin);
+registerSubmitBtn.addEventListener('click',handleRegister);
 </script>
 </body></html>
