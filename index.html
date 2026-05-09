@@ -278,7 +278,9 @@
       const noticeEl = document.getElementById('appNotice');
       const showNotice=(t)=>{ if(noticeEl) noticeEl.textContent=t; };
       if(!window.supabase||typeof window.supabase.createClient!=='function'){ showNotice('Supabase SDK 加载失败，请刷新后重试。'); return; }
-      const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+      const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+      window.supabaseClient=supabaseClient;
+      const withTimeout=(promise,ms,timeoutMessage)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(timeoutMessage)),ms))]);
       const $=(id)=>document.getElementById(id);
       const safeBind=(el,evt,fn)=>{ if(el) el.addEventListener(evt,fn); };
       const loadUsers=()=>JSON.parse(localStorage.getItem(STORAGE_USERS)||'{}');
@@ -291,17 +293,17 @@
       async function ensureProfile(session){
         const email=(session?.user?.email||'').toLowerCase(); if(!email) return null;
         const users=loadUsers(); const localUser=users[email]||{};
-        const {data:found}=await supabase.from('profiles').select('*').eq('id',session.user.id).maybeSingle();
+        const {data:found}=await withTimeout(supabaseClient.from('profiles').select('*').eq('id',session.user.id).maybeSingle(),10000,'获取个人资料超时');
         if(found){
           let patch={};
           if(!found.nickname && localUser.nickname) patch.nickname=localUser.nickname;
           if(!found.avatar_url && localUser.avatarDataUrl && !String(localUser.avatarDataUrl).startsWith('data:')) patch.avatar_url=localUser.avatarDataUrl;
-          if(Object.keys(patch).length){ patch.updated_at=new Date().toISOString(); const {data:updated}=await supabase.from('profiles').update(patch).eq('id',session.user.id).select().single(); currentProfile=updated||{...found,...patch}; }
+          if(Object.keys(patch).length){ patch.updated_at=new Date().toISOString(); const {data:updated}=await withTimeout(supabaseClient.from('profiles').update(patch).eq('id',session.user.id).select().single(),10000,'更新个人资料超时'); currentProfile=updated||{...found,...patch}; }
           else currentProfile=found;
         }else{
           const nickname=localUser.nickname||email.split('@')[0]||'用户';
           const avatarUrl=(localUser.avatarDataUrl && !String(localUser.avatarDataUrl).startsWith('data:'))?localUser.avatarDataUrl:'';
-          const {data:created,error}=await supabase.from('profiles').upsert({id:session.user.id,email,nickname,avatar_url:avatarUrl},{onConflict:'id'}).select().single();
+          const {data:created,error}=await withTimeout(supabaseClient.from('profiles').upsert({id:session.user.id,email,nickname,avatar_url:avatarUrl},{onConflict:'id'}).select().single(),10000,'保存个人资料超时');
           if(error) throw error; currentProfile=created;
         }
         users[email]={...localUser,nickname:currentProfile.nickname||localUser.nickname||email,avatarDataUrl:currentProfile.avatar_url||localUser.avatarDataUrl||''}; localStorage.setItem(STORAGE_USERS,JSON.stringify(users));
@@ -310,21 +312,22 @@
         return currentProfile;
       }
 
-      (async()=>{ try{ const {data,error}=await supabase.auth.getSession(); if(error) throw error; const session=data.session; const email=(session&&session.user&&session.user.email||'').toLowerCase(); if(!email){ window.location.replace('login.html'); return; } setCurrentUser(email); await ensureProfile(session); refreshAuthUI(); }catch(e){ showNotice('登录状态检查失败，请刷新页面重试。'); } })();
-      supabase.auth.onAuthStateChange(async(_e,session)=>{ const email=(session&&session.user&&session.user.email||'').toLowerCase(); if(email){ setCurrentUser(email); await ensureProfile(session); refreshAuthUI(); } else { setCurrentUser(''); window.location.replace('login.html'); } });
+      (async()=>{ try{ const {data,error}=await withTimeout(supabaseClient.auth.getSession(),5000,'获取登录状态超时'); if(error) throw error; const session=data.session; const email=(session&&session.user&&session.user.email||'').toLowerCase(); if(!email){ window.location.replace('login.html'); return; } setCurrentUser(email); await ensureProfile(session); refreshAuthUI(); }catch(e){ showNotice('登录状态检查失败，请刷新页面重试。'); } })();
+      supabaseClient.auth.onAuthStateChange(async(_e,session)=>{ const email=(session&&session.user&&session.user.email||'').toLowerCase(); if(email){ setCurrentUser(email); await ensureProfile(session); refreshAuthUI(); } else { setCurrentUser(''); window.location.replace('login.html'); } });
 
       safeBind($('openLoginBtn'),'click',()=>{ window.location.href='login.html'; });
-      async function handleLogout(btn){
+      async function handleLogout(button){
         console.log('logout clicked');
-        const oldText=btn&&btn.textContent;
-        if(btn){ btn.disabled=true; btn.textContent='退出中...'; }
-        const timeout=setTimeout(()=>window.location.replace('login.html'),5000);
+        const originalText=button?button.textContent:'退出登录';
+        if(button){ button.disabled=true; button.textContent='退出中...'; }
         try{
-          const {error}=await supabase.auth.signOut({ scope: 'local' });
-          if(error){ console.error(error); console.log('logout error'); }
-          else { console.log('logout success'); }
-        }catch(err){ console.error(err); console.log('logout error'); }
-        finally{ clearTimeout(timeout); window.location.replace('login.html'); if(btn){ btn.disabled=false; btn.textContent=oldText||'退出登录'; } }
+          if(window.supabaseClient&&window.supabaseClient.auth){
+            const {error}=await withTimeout(window.supabaseClient.auth.signOut({ scope:'local' }),5000,'退出登录超时');
+            if(error){ console.error('logout error:', error); console.log('logout error'); }
+            else { console.log('logout success'); }
+          }else{ console.warn('supabaseClient not found, fallback redirect'); }
+        }catch(error){ console.error('logout error or timeout:', error); console.log(error?.message==='退出登录超时'?'logout timeout':'logout error'); }
+        finally{ if(button){ button.disabled=false; button.textContent=originalText||'退出登录'; } window.location.replace('login.html'); }
       }
       document.addEventListener('click',(e)=>{
         const btn=e.target.closest('button[data-action]');
@@ -335,12 +338,7 @@
         if(action==='logout'){ handleLogout(btn); }
       });
       safeBind($('profileAvatarInput'),'change',(e)=>{ const file=e.target?.files?.[0]; if(!file) return; if(!ALLOWED_TYPES.includes(file.type)){ alert('仅支持 JPG、PNG、WEBP 格式头像。'); e.target.value=''; return; } if(file.size>MAX_AVATAR_SIZE){ alert('头像图片过大，请上传 2MB 以内的图片。'); e.target.value=''; return; } selectedAvatarFile=file; const url=URL.createObjectURL(file); renderAvatar($('profileAvatarPreview'),$('profileNickname')?.value||currentProfile?.nickname||'',url); });
-      safeBind($('profileForm'),'submit',async(e)=>{ e.preventDefault(); console.log('save profile clicked'); const submitBtn=e.submitter||$('profileForm')?.querySelector('button[type="submit"]'); const oldText=submitBtn&&submitBtn.textContent; if(submitBtn){ submitBtn.disabled=true; submitBtn.textContent='保存中...'; } try{ const {data,error}=await supabase.auth.getSession(); if(error||!data.session?.user?.id){ if(error) console.error(error); alert('请先登录后再修改个人资料'); window.location.replace('login.html'); return; } const session=data.session; console.log('current user id', session.user.id); const nickname=(($('profileNickname')||{}).value||'').trim(); if(!nickname){ alert('请输入昵称。'); return; } let avatarUrl=currentProfile?.avatar_url||''; if(selectedAvatarFile){ console.log('selected avatar file', selectedAvatarFile.name, selectedAvatarFile.size); const ext=(selectedAvatarFile.name.split('.').pop()||'jpg').toLowerCase(); const path=`${session.user.id}/avatar-${Date.now()}.${ext}`; console.log('avatar upload path', path); const {error:upErr}=await supabase.storage.from(AVATAR_BUCKET).upload(path,selectedAvatarFile,{upsert:false,contentType:selectedAvatarFile.type}); if(upErr){ console.error(upErr); console.log('avatar upload error'); alert('头像上传失败：'+(upErr.message||'请稍后重试。')); return; } console.log('avatar upload success'); const {data:pub}=supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path); avatarUrl=(pub&&pub.publicUrl)||avatarUrl; }
-        const {data:updated,error:updateErr}=await supabase.from('profiles').upsert({id:session.user.id,email:(session.user.email||'').toLowerCase(),nickname,avatar_url:avatarUrl,updated_at:new Date().toISOString()},{onConflict:'id'}).select().single();
-        if(updateErr){ console.error(updateErr); console.log('profile upsert error'); alert('资料保存失败：'+(updateErr.message||'请稍后重试。')); return; } console.log('profile upsert success');
-        currentProfile=updated; const email=(session.user.email||'').toLowerCase(); const users=loadUsers(); users[email]={...(users[email]||{}),nickname,avatarDataUrl:avatarUrl||users[email]?.avatarDataUrl||''}; localStorage.setItem(STORAGE_USERS,JSON.stringify(users));
-        refreshAuthUI(); renderAvatar($('profileAvatarPreview'),nickname,avatarUrl); selectedAvatarFile=null; if($('profileAvatarInput')) $('profileAvatarInput').value=''; $('profileModal')?.classList.remove('show'); alert('个人资料已保存');
-      }catch(err){ console.error(err); alert('资料保存失败：'+(err?.message||'请稍后重试。')); }finally{ if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent=oldText||'保存修改'; } }});
+      safeBind($('profileForm'),'submit',async(e)=>{ e.preventDefault(); console.log('save profile clicked'); const submitBtn=e.submitter||$('profileForm')?.querySelector('button[type="submit"]'); const oldText=submitBtn&&submitBtn.textContent; if(submitBtn){ submitBtn.disabled=true; submitBtn.textContent='保存中...'; } try{ console.log('get session start'); const {data,error}=await withTimeout(supabaseClient.auth.getSession(),5000,'保存超时，请检查网络后重试。'); if(error){ console.error('get session error',error); console.log('get session error'); throw error; } const session=data?.session; if(!session?.user?.id){ alert('请先登录后再修改个人资料'); window.location.replace('login.html'); return; } console.log('get session success'); const nickname=(($('profileNickname')||{}).value||'').trim(); if(!nickname){ alert('请输入昵称。'); return; } let avatarUrl=currentProfile?.avatar_url||''; if(selectedAvatarFile){ if(!ALLOWED_TYPES.includes(selectedAvatarFile.type)){ alert('头像上传失败，请检查图片大小、网络或 avatars 存储权限。'); return; } if(selectedAvatarFile.size>MAX_AVATAR_SIZE){ alert('头像上传失败，请检查图片大小、网络或 avatars 存储权限。'); return; } console.log('avatar upload start'); const ext=(selectedAvatarFile.name.split('.').pop()||'jpg').toLowerCase(); const path=`${session.user.id}/avatar-${Date.now()}.${ext}`; const {error:upErr}=await withTimeout(supabaseClient.storage.from(AVATAR_BUCKET).upload(path,selectedAvatarFile,{upsert:false,contentType:selectedAvatarFile.type}),15000,'保存超时，请检查网络后重试。'); if(upErr){ console.error('avatar upload error',upErr); console.log('avatar upload error'); alert('头像上传失败，请检查图片大小、网络或 avatars 存储权限。'); return; } console.log('avatar upload success'); const {data:pub}=supabaseClient.storage.from(AVATAR_BUCKET).getPublicUrl(path); avatarUrl=(pub&&pub.publicUrl)||avatarUrl; } console.log('profile upsert start'); const {data:updated,error:updateErr}=await withTimeout(supabaseClient.from('profiles').upsert({id:session.user.id,email:(session.user.email||'').toLowerCase(),nickname,avatar_url:avatarUrl,updated_at:new Date().toISOString()},{onConflict:'id'}).select().single(),10000,'保存超时，请检查网络后重试。'); if(updateErr){ console.error('profile upsert error',updateErr); console.log('profile upsert error'); alert('个人资料保存失败，请稍后重试。'); return; } console.log('profile upsert success'); currentProfile=updated; const email=(session.user.email||'').toLowerCase(); const users=loadUsers(); users[email]={...(users[email]||{}),nickname,avatarDataUrl:avatarUrl||users[email]?.avatarDataUrl||''}; localStorage.setItem(STORAGE_USERS,JSON.stringify(users)); refreshAuthUI(); renderAvatar($('profileAvatarPreview'),nickname,avatarUrl); selectedAvatarFile=null; if($('profileAvatarInput')) $('profileAvatarInput').value=''; $('profileModal')?.classList.remove('show'); alert('个人资料已保存'); }catch(err){ console.error('save profile error',err); if(err?.message==='保存超时，请检查网络后重试。'){ alert('保存超时，请检查网络后重试。'); }else{ alert('个人资料保存失败，请稍后重试。'); } }finally{ if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='保存修改'; } }});
 
       const getValue=(id)=>(($(id)||{}).value||'').trim();
       const displayValue=(id)=>getValue(id)||'未填写';
@@ -373,7 +371,7 @@
       safeBind($('copyBtn'),'click',async()=>{ const text=(summaryEl&&summaryEl.textContent||'').trim(); if(!text||text.includes('点击“生成走访总结”')) return alert('请先生成走访总结，再复制。'); try{ await navigator.clipboard.writeText(text); alert('走访总结已复制。'); }catch(_){ alert('复制失败，请手动复制。'); } });
       safeBind($('clearBtn'),'click',()=>{ fieldIds.forEach((id)=>{ const el=$(id); if(el) el.value=''; }); if(summaryEl) summaryEl.textContent='（点击“生成走访总结”后会显示在这里）'; });
       safeBind($('saveVisitBtn'),'click',async()=>{
-        const {data,error}=await supabase.auth.getSession();
+        const {data,error}=await withTimeout(supabaseClient.auth.getSession(),5000,'获取登录状态超时');
         if(error){ alert('登录状态获取失败，请稍后重试。'); return; }
         const session=data&&data.session;
         if(!session||!session.user||!session.user.id){ alert('请先登录。'); window.location.href='login.html'; return; }
@@ -396,7 +394,7 @@
           summary_text: summaryText,
           form_data: formData
         };
-        const {error:insertError}=await supabase.from('visit_records').insert(payload);
+        const {error:insertError}=await withTimeout(supabaseClient.from('visit_records').insert(payload),10000,'保存走访记录超时');
         if(insertError){
           alert('保存失败，请稍后重试。');
           return;
