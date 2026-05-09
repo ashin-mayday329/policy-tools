@@ -83,7 +83,8 @@ const setTab=(isLogin)=>{tabLoginBtn.classList.toggle('active',isLogin);tabRegis
 let supabaseClient=null;
 try{
   if(!window.supabase||typeof window.supabase.createClient!=='function') throw new Error('Supabase SDK 加载失败');
-  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  supabaseClient=window.supabaseClient&&window.supabaseClient.auth?window.supabaseClient:window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  window.supabaseClient=supabaseClient;
 }catch(err){
   console.error('Supabase 初始化失败:',err);
   showMsg('系统初始化失败，请刷新页面后重试。');
@@ -91,6 +92,8 @@ try{
 
 (async()=>{
   if(!supabaseClient) return;
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('logged_out')==='1') return;
   try{
     const {data,error}=await supabaseClient.auth.getSession();
     if(error){

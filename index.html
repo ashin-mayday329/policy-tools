@@ -358,7 +358,7 @@
             else { console.log('logout success'); }
           }else{ console.warn('supabaseClient not found, fallback redirect'); }
         }catch(error){ console.error('logout error or timeout:', error); console.log(error?.message==='退出登录超时'?'logout timeout':'logout error'); }
-        finally{ currentUserId=''; setCurrentUser(''); if(button){ button.disabled=false; button.textContent=originalText||'退出登录'; } window.location.replace('login.html'); }
+        finally{ currentUserId=''; setCurrentUser(''); if(button){ button.disabled=false; button.textContent=originalText||'退出登录'; } window.location.replace('login.html?logged_out=1'); }
       }
       document.addEventListener('click',(e)=>{
         const btn=e.target.closest('button[data-action]');
