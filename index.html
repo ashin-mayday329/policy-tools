@@ -477,5 +477,202 @@
       refreshAuthUI();
     });
   </script>
+
+  <script>
+    // homepage hotfix: stable save + recent visits loading
+    document.addEventListener('DOMContentLoaded', () => {
+      const supabaseClient = window.supabaseClient;
+      if (!supabaseClient) return;
+      const $ = (id) => document.getElementById(id);
+      const summaryEl = $('summary');
+      const summaryEmptyEl = $('summaryEmpty');
+      const recentListEl = $('recentRecordsList');
+      const draftIds = ['company','visitStaff','contact','phone','address','basic','needs','solution'];
+      const fieldMap = { company_name:'company', visit_staff:'visitStaff', contact_name:'contact', contact_phone:'phone', office_address:'address', basic_info:'basic', enterprise_needs:'needs', park_solution:'solution' };
+
+      function withTimeout(promise, ms, message) {
+        return Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms))
+        ]);
+      }
+      window.withTimeout = withTimeout;
+
+      async function getHomeUser() {
+        if (window.currentUser && window.currentUser.id) return window.currentUser;
+        if (typeof currentUser !== 'undefined' && currentUser && currentUser.id) return currentUser;
+        const { data, error } = await withTimeout(supabaseClient.auth.getSession(), 20000, '获取登录状态超时');
+        if (error) {
+          console.error('获取登录状态失败：', error);
+          throw new Error(error.message || '获取登录状态失败');
+        }
+        const session = data?.session;
+        if (!session?.user?.id) {
+          alert('请先登录');
+          window.location.replace('login.html');
+          throw new Error('请先登录');
+        }
+        window.currentUser = session.user;
+        return session.user;
+      }
+
+      const draftKey = (userId) => userId ? `visitDraft_${userId}` : '';
+      function saveHomeDraft(userId) {
+        const key = draftKey(userId);
+        if (!key) return;
+        const draft = {};
+        draftIds.forEach((id) => { draft[id] = ($(id)?.value || ''); });
+        draft.summary = (summaryEl?.textContent || '').trim();
+        localStorage.setItem(key, JSON.stringify(draft));
+      }
+      function restoreHomeDraft(userId) {
+        const key = draftKey(userId);
+        if (!key) return;
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return;
+          const draft = JSON.parse(raw);
+          draftIds.forEach((id) => {
+            if ($(id) && typeof draft[id] === 'string' && !$(id).value) $(id).value = draft[id];
+          });
+          if (summaryEl && draft.summary && !summaryEl.textContent.trim()) {
+            summaryEl.textContent = draft.summary;
+            summaryEl.classList.remove('hidden');
+            summaryEmptyEl?.classList.add('hidden');
+          }
+        } catch (error) {
+          console.error('恢复草稿失败：', error);
+        }
+      }
+      function clearHomeDraft(userId) {
+        const key = draftKey(userId);
+        if (key) localStorage.removeItem(key);
+      }
+
+      async function loadHomeRecentVisits() {
+        if (!recentListEl) return;
+        recentListEl.innerHTML = '<p class="empty-records">加载中...</p>';
+        try {
+          const user = await getHomeUser();
+          const { data, error } = await withTimeout(
+            supabaseClient.from('visit_records').select('id,company_name,contact_name,contact_phone,enterprise_needs,created_at,updated_at').eq('user_id', user.id).order('updated_at', { ascending: false }).order('created_at', { ascending: false }).limit(3),
+            20000,
+            '最近记录加载超时'
+          );
+          if (error) throw error;
+          if (!data || !data.length) {
+            recentListEl.innerHTML = '<p class="empty-records">暂无最近记录</p>';
+            return;
+          }
+          const formatTime = (v) => {
+            const d = new Date(v || '');
+            if (Number.isNaN(d.getTime())) return '--';
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+          };
+          recentListEl.innerHTML = data.map((r) => `<article class="record-card"><div class="record-head"><h3>${r.company_name || '未命名企业'}</h3><time>${formatTime(r.created_at || r.updated_at)}</time></div><div class="record-meta"><span>👤 ${r.contact_name || '未填写'}</span><span>📞 ${r.contact_phone || '未填写'}</span></div><p class="record-summary">${(r.enterprise_needs || '未填写企业需求').slice(0,80)}</p></article>`).join('');
+        } catch (error) {
+          console.error('最近记录加载失败：', error);
+          recentListEl.innerHTML = '<p class="empty-records">最近记录加载失败</p>';
+        }
+      }
+      window.loadHomeRecentVisits = loadHomeRecentVisits;
+
+      let editingVisitRecordId = '';
+      try {
+        const editingRaw = sessionStorage.getItem('visitRecordEditing');
+        if (editingRaw) {
+          const editing = JSON.parse(editingRaw);
+          if (editing?.id) editingVisitRecordId = String(editing.id);
+        }
+      } catch (_) {}
+
+      async function safeSaveVisitRecord(button) {
+        const defaultText = editingVisitRecordId ? '更新走访记录' : '保存到走访记录';
+        const originText = button?.textContent?.trim() || defaultText;
+        if (button) { button.disabled = true; button.textContent = '保存中...'; }
+        try {
+          const user = await getHomeUser();
+          const company = ($('company')?.value || '').trim();
+          if (!company) throw new Error('请先填写企业名称');
+          const summaryText = (summaryEl?.textContent || '').trim();
+          if (!summaryText) throw new Error('请先生成走访总结');
+          const formData = {};
+          Object.entries(fieldMap).forEach(([dbKey, id]) => { formData[id] = ($(id)?.value || '').trim(); });
+          const payload = {
+            user_id: user.id,
+            company_name: formData.company,
+            visit_staff: formData.visitStaff,
+            contact_name: formData.contact,
+            contact_phone: formData.phone,
+            office_address: formData.address,
+            basic_info: formData.basic,
+            enterprise_needs: formData.needs,
+            park_solution: formData.solution,
+            summary_text: summaryText,
+            form_data: formData
+          };
+          let result;
+          if (editingVisitRecordId) {
+            result = await withTimeout(supabaseClient.from('visit_records').update(payload).eq('id', editingVisitRecordId).eq('user_id', user.id), 20000, '保存走访记录超时');
+          } else {
+            result = await withTimeout(supabaseClient.from('visit_records').insert(payload), 20000, '保存走访记录超时');
+          }
+          if (result.error) throw result.error;
+          alert('已保存到云端走访记录');
+          editingVisitRecordId = '';
+          sessionStorage.removeItem('visitRecordEditing');
+          clearHomeDraft(user.id);
+          await loadHomeRecentVisits();
+          if (typeof window.loadDashboardStats === 'function') {
+            window.loadDashboardStats().catch((e) => console.error('统计刷新失败：', e));
+          }
+        } catch (error) {
+          console.error('保存走访记录失败：', error);
+          if ((error?.message || '').includes('超时')) {
+            alert('保存超时，请稍后到走访记录查询中确认是否已保存。');
+          } else {
+            alert('保存失败：' + (error?.message || '未知错误'));
+          }
+        } finally {
+          if (button) { button.disabled = false; button.textContent = editingVisitRecordId ? '更新走访记录' : (originText.includes('更新') ? '更新走访记录' : '保存到走访记录'); }
+        }
+      }
+
+      document.addEventListener('click', async function(event) {
+        const btn = event.target.closest('[data-action="save-visit-record"], #saveRecordBtn, #saveVisitRecordBtn, #saveVisitBtn');
+        if (!btn) return;
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        await safeSaveVisitRecord(btn);
+      }, true);
+
+      $('saveVisitBtn')?.setAttribute('data-action', 'save-visit-record');
+      let draftTimer = null;
+      draftIds.forEach((id) => {
+        const el = $(id);
+        if (!el) return;
+        ['input','change'].forEach((evt) => el.addEventListener(evt, async () => {
+          clearTimeout(draftTimer);
+          draftTimer = setTimeout(async () => {
+            try { const user = await getHomeUser(); saveHomeDraft(user.id); } catch (_) {}
+          }, 300);
+        }));
+      });
+      $('clearBtn')?.addEventListener('click', async () => {
+        try { const user = await getHomeUser(); clearHomeDraft(user.id); } catch (_) {}
+      });
+
+      (async () => {
+        try {
+          const user = await getHomeUser();
+          restoreHomeDraft(user.id);
+          await loadHomeRecentVisits();
+        } catch (error) {
+          console.error('首页初始化失败：', error);
+        }
+      })();
+    });
+  </script>
 </body>
 </html>
