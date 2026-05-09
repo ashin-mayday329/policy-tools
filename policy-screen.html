@@ -326,7 +326,7 @@ safeBind($('wordBtn'),'click', ()=>{
  p{margin:6px 0;font-size:13.5px}
  ol{margin:6px 0 10px 20px;padding:0}
  li{margin:3px 0;font-size:13.5px}
- </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>${body}</body></html>`;
+ </style></head><body>${body}</body></html>`;
  const blob = new Blob(['\\ufeff', html], {type:'application/msword'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${company}政策初筛报告.doc`;
  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
