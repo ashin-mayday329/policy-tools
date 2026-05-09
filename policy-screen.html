@@ -333,8 +333,7 @@ $('saveRecordBtn').addEventListener('click', saveCurrentRecord);
 
 function getCurrentUserValid(){
  const users = JSON.parse(localStorage.getItem('pt_users_v1') || '{}');
- const current = localStorage.getItem('pt_current_user_v1') || '';
- return current && users[current] ? current : '';
+ return (localStorage.getItem('pt_current_user_v1') || '').toLowerCase();
 }
 function collectFormData(){
  const data={};
@@ -343,7 +342,7 @@ function collectFormData(){
 }
 function saveCurrentRecord(){
  const user=getCurrentUserValid();
- if(!user){ alert('请先登录'); window.location.replace('login.html'); return; }
+ if(!user){ alert('请先登录'); window.location.href='login.html'; return; }
  if(!lastReportData||!lastPlainText.trim()){ alert('请先生成初筛报告。'); return; }
  const company=($('company').value||'').trim();
  if(!company){ alert('请先填写企业名称'); return; }

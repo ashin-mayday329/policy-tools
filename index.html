@@ -191,7 +191,7 @@
         </div>
       </div>
     </header>
-    <div class="notice">提示：本系统为本地演示版，账号和数据仅保存在当前浏览器本地，请勿录入敏感企业信息。</div>
+    <div id="appNotice" class="notice">提示：本系统为本地演示版，账号和数据仅保存在当前浏览器本地，请勿录入敏感企业信息。</div>
     <section class="card">
       <h2 class="section-title">走访信息录入</h2>
 
@@ -208,7 +208,7 @@
       </div>
 
       <div class="actions">
-        <button id="generateBtn">生成走访总结</button>
+        <button id="generateBtn" type="button">生成走访总结</button>
         <button id="copyBtn" type="button">复制总结</button>
         <button id="saveVisitBtn" type="button" style="background:linear-gradient(135deg,#1e76c6,#1b56ae)">保存到走访记录</button>
         <button id="clearBtn" type="button">清空表单</button>
@@ -266,271 +266,41 @@
   </div>
 
   <script>
-    const getValue = (id) => document.getElementById(id).value.trim();
-    const summaryEl = document.getElementById('summary');
-    const fieldIds = ['company','visitStaff','contact','phone','address','basic','needs','solution'];
+    document.addEventListener('DOMContentLoaded', () => {
+      const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co';
+      const SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';
+      const STORAGE_USERS='pt_users_v1';
+      const STORAGE_CURRENT='pt_current_user_v1';
+      const DEFAULT_AVATAR='人';
+      const noticeEl = document.getElementById('appNotice');
+      const showNotice=(t)=>{ if(noticeEl) noticeEl.textContent=t; };
+      if(!window.supabase||typeof window.supabase.createClient!=='function'){ showNotice('Supabase SDK 加载失败，请刷新后重试。'); return; }
+      const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+      const $=(id)=>document.getElementById(id);
+      const safeBind=(el,evt,fn)=>{ if(el) el.addEventListener(evt,fn); };
+      const loadUsers=()=>JSON.parse(localStorage.getItem(STORAGE_USERS)||'{}');
+      const setCurrentUser=(email)=>email?localStorage.setItem(STORAGE_CURRENT,email.toLowerCase()):localStorage.removeItem(STORAGE_CURRENT);
+      const getCurrentUser=()=> (localStorage.getItem(STORAGE_CURRENT)||'').toLowerCase();
+      const renderAvatar=(container,nickname,avatarDataUrl)=>{ if(!container) return; if(avatarDataUrl){container.classList.add('has-image');container.innerHTML='<img alt="用户头像" src="">';container.querySelector('img').src=avatarDataUrl;}else{container.classList.remove('has-image');container.textContent=(nickname&&nickname[0]?nickname[0]:DEFAULT_AVATAR).toUpperCase();}};
+      const refreshAuthUI=()=>{ const email=getCurrentUser(); const users=loadUsers(); const guest=$('authGuest'); const user=$('authUser'); const nick=$('userNickname'); const avatar=$('userAvatar'); if(email){ guest&&guest.classList.add('hidden'); user&&user.classList.remove('hidden'); const n=(users[email]&&users[email].nickname)||email; if(nick) nick.textContent=n; renderAvatar(avatar,n,(users[email]&&users[email].avatarDataUrl)||''); } else { guest&&guest.classList.remove('hidden'); user&&user.classList.add('hidden'); } };
 
-    const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co';
-    const SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';
-    const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-    const STORAGE_USERS = 'pt_users_v1';
-    const STORAGE_CURRENT = 'pt_current_user_v1';
-    const DEFAULT_AVATAR = '人';
-    const authGuest = document.getElementById('authGuest');
-    const authUser = document.getElementById('authUser');
-    const userNicknameEl = document.getElementById('userNickname');
-    const authModal = document.getElementById('authModal');
-    const profileModal = document.getElementById('profileModal');
-    const userAvatarEl = document.getElementById('userAvatar');
-    const profileAvatarPreviewEl = document.getElementById('profileAvatarPreview');
-    const profileAvatarInputEl = document.getElementById('profileAvatarInput');
-    let pendingAvatarDataUrl = '';
+      (async()=>{ try{ const {data,error}=await supabase.auth.getSession(); if(error) throw error; const email=(data.session&&data.session.user&&data.session.user.email||'').toLowerCase(); if(!email){ window.location.replace('login.html'); return; } setCurrentUser(email); refreshAuthUI(); }catch(e){ showNotice('登录状态检查失败，请刷新页面重试。'); } })();
+      supabase.auth.onAuthStateChange((_e,session)=>{ const email=(session&&session.user&&session.user.email||'').toLowerCase(); if(email){ setCurrentUser(email); refreshAuthUI(); } else { setCurrentUser(''); window.location.replace('login.html'); } });
 
-    const loadUsers = () => JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}');
-    const saveUsers = (users) => localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
-    const getCurrentUser = () => localStorage.getItem(STORAGE_CURRENT) || '';
-    async function ensureAuth(){const {data}=await supabase.auth.getSession();if(!data.session){setCurrentUser('');window.location.replace('login.html');return null;}const email=(data.session.user&&data.session.user.email)||'';if(email) setCurrentUser(email.toLowerCase());return email.toLowerCase();}
-    const setCurrentUser = (username) => {
-      if (username) localStorage.setItem(STORAGE_CURRENT, username);
-      else localStorage.removeItem(STORAGE_CURRENT);
-    };
+      safeBind($('openLoginBtn'),'click',()=>{ window.location.href='login.html'; });
+      safeBind($('logoutBtn'),'click',async()=>{ await supabase.auth.signOut(); setCurrentUser(''); window.location.href='login.html'; });
+      safeBind($('openProfileBtn'),'click',()=>$('profileModal')&&$('profileModal').classList.add('show'));
+      safeBind($('profileEntryBtn'),'click',()=>$('profileModal')&&$('profileModal').classList.add('show'));
+      safeBind($('closeProfileBtn'),'click',()=>$('profileModal')&&$('profileModal').classList.remove('show'));
 
-    
-
-    async function hashPassword(password) {
-      if (window.crypto && window.crypto.subtle) {
-        const msgUint8 = new TextEncoder().encode(password);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-      }
-      return btoa(unescape(encodeURIComponent(password)));
-    }
-
-    const renderAvatar = (container, nickname, avatarDataUrl) => {
-      if (avatarDataUrl) {
-        container.classList.add('has-image');
-        container.innerHTML = '<img alt="用户头像" src="">';
-        container.querySelector('img').src = avatarDataUrl;
-      } else {
-        container.classList.remove('has-image');
-        container.textContent = (nickname && nickname[0] ? nickname[0] : DEFAULT_AVATAR).toUpperCase();
-      }
-    };
-
-    function closeProfileModal() {
-      profileModal.classList.remove('show');
-      profileModal.setAttribute('aria-hidden', 'true');
-      profileAvatarInputEl.value = '';
-      pendingAvatarDataUrl = '';
-    }
-
-    async function compressImageToDataUrl(file, maxWidth = 320, quality = 0.82) {
-      const imageUrl = URL.createObjectURL(file);
-      const img = await new Promise((resolve, reject) => {
-        const image = new Image();
-        image.onload = () => resolve(image);
-        image.onerror = reject;
-        image.src = imageUrl;
-      });
-      const scale = Math.min(1, maxWidth / Math.max(img.width, img.height));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(img.width * scale));
-      canvas.height = Math.max(1, Math.round(img.height * scale));
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(imageUrl);
-      return canvas.toDataURL('image/jpeg', quality);
-    }
-
-    function refreshAuthUI() {
-      const username = getCurrentUser();
-      const users = loadUsers();
-      if (username && users[username]) {
-        const nickname = users[username].nickname || username;
-        authGuest.classList.add('hidden');
-        authUser.classList.remove('hidden');
-        userNicknameEl.textContent = nickname;
-        renderAvatar(userAvatarEl, nickname, users[username].avatarDataUrl || '');
-      } else {
-        setCurrentUser('');
-        authGuest.classList.remove('hidden');
-        authUser.classList.add('hidden');
-      }
-    }
-
-    function showModal(tab = 'login') {
-      authModal.classList.add('show');
-      authModal.setAttribute('aria-hidden', 'false');
-      setTab(tab);
-    }
-    function hideModal() {
-      authModal.classList.remove('show');
-      authModal.setAttribute('aria-hidden', 'true');
-    }
-    function setTab(tab) {
-      const isLogin = tab === 'login';
-      document.getElementById('tabLogin').classList.toggle('active', isLogin);
-      document.getElementById('tabRegister').classList.toggle('active', !isLogin);
-      document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
-      document.getElementById('registerForm').classList.toggle('hidden', isLogin);
-    }
-
-    document.getElementById('openLoginBtn').addEventListener('click', () => showModal('login'));
-    function openProfile() {
-      const username = getCurrentUser();
-      const users = loadUsers();
-      if (!username || !users[username]) return;
-      document.getElementById('profileNickname').value = users[username].nickname || username;
-      pendingAvatarDataUrl = users[username].avatarDataUrl || '';
-      renderAvatar(profileAvatarPreviewEl, users[username].nickname || username, pendingAvatarDataUrl);
-      profileAvatarInputEl.value = '';
-      profileModal.classList.add('show');
-      profileModal.setAttribute('aria-hidden', 'false');
-    }
-    document.getElementById('openProfileBtn').addEventListener('click', openProfile);
-    document.getElementById('profileEntryBtn').addEventListener('click', openProfile);
-    document.getElementById('logoutBtn').addEventListener('click', async () => { await supabase.auth.signOut(); setCurrentUser(''); window.location.replace('login.html'); });
-    document.getElementById('tabLogin').addEventListener('click', () => setTab('login'));
-    document.getElementById('tabRegister').addEventListener('click', () => setTab('register'));
-    document.getElementById('closeModalBtn').addEventListener('click', hideModal);
-    document.getElementById('closeModalBtn2').addEventListener('click', hideModal);
-    authModal.addEventListener('click', (e) => { if (e.target === authModal) hideModal(); });
-    document.getElementById('closeProfileBtn').addEventListener('click', closeProfileModal);
-    profileModal.addEventListener('click', (e) => {
-      if (e.target === profileModal) {
-        closeProfileModal();
-      }
-    });
-    profileAvatarInputEl.addEventListener('change', async (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        alert('请选择图片文件。');
-        e.target.value = '';
-        return;
-      }
-      try {
-        pendingAvatarDataUrl = await compressImageToDataUrl(file, file.size > 2 * 1024 * 1024 ? 260 : 320, file.size > 2 * 1024 * 1024 ? 0.75 : 0.82);
-        const nickname = document.getElementById('profileNickname').value.trim() || getCurrentUser() || DEFAULT_AVATAR;
-        renderAvatar(profileAvatarPreviewEl, nickname, pendingAvatarDataUrl);
-      } catch (error) {
-        alert('头像处理失败，请更换图片重试。');
-      }
-    });
-
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const username = document.getElementById('regUsername').value.trim();
-      const nickname = document.getElementById('regNickname').value.trim();
-      const password = document.getElementById('regPassword').value;
-      const confirm = document.getElementById('regConfirmPassword').value;
-      if (!username || !nickname || !password) return alert('请完整填写注册信息。');
-      if (password !== confirm) return alert('两次输入的密码不一致。');
-      const users = loadUsers();
-      if (users[username]) return alert('该账号已存在，请更换账号。');
-      users[username] = { nickname, passwordHash: await hashPassword(password), createdAt: Date.now() };
-      saveUsers(users);
-      setCurrentUser(username);
-      ensureAuth().then(refreshAuthUI);
-      hideModal();
-      e.target.reset();
-      alert('注册成功，已自动登录。');
-    });
-
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const username = document.getElementById('loginUsername').value.trim();
-      const password = document.getElementById('loginPassword').value;
-      const users = loadUsers();
-      const user = users[username];
-      if (!user) return alert('账号不存在，请先注册。');
-      const passwordHash = await hashPassword(password);
-      if (passwordHash !== user.passwordHash) return alert('密码错误，请重试。');
-      setCurrentUser(username);
+      const getValue=(id)=>(($(id)||{}).value||'').trim(); const summaryEl=$('summary'); const fieldIds=['company','visitStaff','contact','phone','address','basic','needs','solution'];
+      safeBind($('generateBtn'),'click',()=>{ const company=getValue('company')||'某企业'; const text=`${company}走访总结
+走访时间：${new Date().toLocaleDateString('zh-CN')}`; if(summaryEl) summaryEl.textContent=text+'
+（内容已生成）'; });
+      safeBind($('copyBtn'),'click',async()=>{ const text=(summaryEl&&summaryEl.textContent||'').trim(); if(!text||text.includes('点击“生成走访总结”')) return alert('请先生成走访总结，再复制。'); try{ await navigator.clipboard.writeText(text); alert('走访总结已复制。'); }catch(_){ alert('复制失败，请手动复制。'); } });
+      safeBind($('clearBtn'),'click',()=>{ fieldIds.forEach((id)=>{ const el=$(id); if(el) el.value=''; }); if(summaryEl) summaryEl.textContent='（点击“生成走访总结”后会显示在这里）'; });
+      safeBind($('saveVisitBtn'),'click',async()=>{ const {data}=await supabase.auth.getSession(); const email=(data.session&&data.session.user&&data.session.user.email||'').toLowerCase(); if(!email){ alert('请先登录。'); window.location.href='login.html'; return; } const key=`visitRecords_${email}`; const list=JSON.parse(localStorage.getItem(key)||'[]'); const rec={id:`v_${Date.now()}`,company:getValue('company'),visitStaff:getValue('visitStaff'),contact:getValue('contact'),phone:getValue('phone'),address:getValue('address'),basic:getValue('basic'),needs:getValue('needs'),followUp:getValue('solution'),summary:(summaryEl&&summaryEl.textContent)||'',createdAt:Date.now(),updatedAt:Date.now()}; list.unshift(rec); localStorage.setItem(key,JSON.stringify(list)); alert('已保存到走访记录。'); });
       refreshAuthUI();
-      hideModal();
-      e.target.reset();
-      alert('登录成功。');
-    });
-
-    refreshAuthUI();
-
-    document.getElementById('profileForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const username = getCurrentUser();
-      const users = loadUsers();
-      if (!username || !users[username]) return;
-      const nickname = document.getElementById('profileNickname').value.trim();
-      if (!nickname) return alert('昵称不能为空。');
-      users[username].nickname = nickname;
-      users[username].avatarDataUrl = pendingAvatarDataUrl || users[username].avatarDataUrl || '';
-      saveUsers(users);
-      refreshAuthUI();
-      closeProfileModal();
-      alert('保存成功，个人资料已更新。');
-    });
-
-    document.getElementById('generateBtn').addEventListener('click', () => {
-      const company = getValue('company') || '某企业';
-      const visitStaff = getValue('visitStaff') || '园区服务人员';
-      const contact = getValue('contact') || '未填写';
-      const phone = getValue('phone') || '未填写';
-      const address = getValue('address') || '未填写';
-      const basic = getValue('basic') || '企业基本情况暂未详细提供，已在走访中完成初步了解，后续将结合企业提供材料进一步补充完善。';
-      const needs = getValue('needs') || '本次走访中，企业暂无新增明确诉求，后续将围绕经营发展需求保持动态沟通。';
-      const solution = getValue('solution') || '针对企业当前情况，园区将安排专人持续跟进，并会同相关业务条线研究可行支持路径，形成闭环服务。';
-      const today = new Date().toLocaleDateString('zh-CN');
-
-      const text = `${company}走访总结\n` +
-        `走访时间：${today}\n` +
-        `走访人员：${visitStaff}\n` +
-        `企业联系人：${contact}（${phone}）\n` +
-        `企业实际办公地：${address}\n\n` +
-        `一、企业基本情况\n` +
-        `${basic}\n` +
-        `从本次走访情况看，企业具备一定经营基础和发展规划，相关业务方向与园区产业升级、绿色低碳和企业服务导向具有一定契合度。\n\n` +
-        `二、企业经营及业务情况\n` +
-        `经沟通了解，企业围绕主营方向持续推进业务落地，整体经营节奏平稳。当前企业在市场拓展、项目实施和资源协同方面保持积极态势，具备与园区企业开展供需对接、场景合作和能力互补的现实基础。\n` +
-        `企业表示，如园区内或周边企业在相关业务领域存在合作需求，希望园区协助开展信息对接，推动形成实质性合作机会。\n\n` +
-        `三、企业主要诉求\n` +
-        `本次走访中，企业提出以下需求：\n` +
-        `一是${needs}\n` +
-        `二是希望在政策解读、资源匹配和服务衔接方面获得持续支持，以便更高效推进项目落地与业务发展。\n\n` +
-        `四、下一步服务建议\n` +
-        `一是结合企业诉求，由园区服务专班建立跟进台账，明确责任人和时间节点，实行闭环推进。\n` +
-        `二是围绕企业重点需求，联动招商、经发及相关职能条线开展专题对接，提升服务响应效率。\n` +
-        `三是${solution}\n` +
-        `四是建议于近期组织阶段性回访，动态更新诉求办理进展，确保服务举措与企业实际需求保持一致。\n`;
-
-      summaryEl.textContent = text;
-    });
-
-    document.getElementById('copyBtn').addEventListener('click', async () => {
-      const text = summaryEl.textContent.trim();
-      if (!text || text.includes('点击“生成走访总结”')) {
-        alert('请先生成走访总结，再复制。');
-        return;
-      }
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(text);
-        } else {
-          const temp = document.createElement('textarea');
-          temp.value = text;
-          document.body.appendChild(temp);
-          temp.select();
-          document.execCommand('copy');
-          document.body.removeChild(temp);
-        }
-        alert('走访总结已复制，可直接粘贴到台账。');
-      } catch (error) {
-        alert('复制失败，请手动复制下方总结内容。');
-      }
-    });
-
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      fieldIds.forEach((id) => { document.getElementById(id).value = ''; });
-      summaryEl.textContent = '（点击“生成走访总结”后会显示在这里）';
     });
   </script>
 </body>
