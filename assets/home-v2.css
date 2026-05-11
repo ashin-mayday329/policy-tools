@@ -24,7 +24,9 @@ body { margin: 0; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; col
 .hero-tags{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}.hero-tags span{padding:7px 12px;border-radius:10px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.36)}
 .user-card{border-radius:22px;padding:20px;backdrop-filter:blur(12px);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);display:flex;flex-direction:column;justify-content:space-between}
 .profile-trigger{border:0;background:transparent;color:#fff;display:flex;align-items:center;gap:12px;cursor:pointer;padding:0;text-align:left}
-.avatar{width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.95);color:#1d4bc5;font-weight:700;display:flex;align-items:center;justify-content:center}
+.user-avatar{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.95);color:#1d4bc5;font-weight:700;display:block;position:relative;overflow:hidden;flex:0 0 52px}
+.user-avatar img{width:100%;height:100%;object-fit:cover;display:none}
+.user-avatar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
 .user-text{display:grid;gap:4px}.nickname{font-size:22px;font-weight:700}.user-text small{color:rgba(246,250,255,.94)}
 .user-actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
 .notice{margin-top:-6px;padding:10px 12px;border-radius:10px;background:#eef6ff;border:1px solid #c8def9;color:#2a4f81;min-height:18px}
