@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>园区企业服务工具箱 · V2 测试页</title>
+  <link rel="stylesheet" href="assets/home-v2.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main class="v2-container">
+    <header class="hero-v2">
+      <div class="hero-main">
+        <span class="hero-kicker">园区企业服务系统</span>
+        <h1>园区企业服务工具箱</h1>
+        <p class="hero-sub">企业走访记录 · 政策申报初筛 · 服务台账管理</p>
+        <p class="hero-desc">面向园区服务人员的内部工作系统，支持企业走访、政策初筛、记录沉淀与数据管理。</p>
+        <div class="hero-tags"><span>云端记录</span><span>政策初筛</span><span>服务台账</span></div>
+      </div>
+      <aside class="user-card">
+        <div class="user-entry">
+          <button id="openProfileBtn" data-action="open-profile" class="profile-trigger" type="button">
+            <span id="userAvatar" class="avatar">人</span>
+            <span id="userNickname" class="nickname">-</span>
+          </button>
+          <small>园区服务人员</small>
+        </div>
+        <div class="user-actions">
+          <button id="profileEntryBtn" data-action="open-profile" type="button">个人资料</button>
+          <button id="logoutBtn" data-action="logout" type="button">退出登录</button>
+        </div>
+      </aside>
+    </header>
+
+    <div id="appNotice" class="notice"></div>
+
+    <section class="nav-grid">
+      <a class="nav-card" href="#visit-workspace"><h3>企业走访服务台账</h3><p>当前页面，进入走访信息录入与总结生成。</p></a>
+      <a class="nav-card" href="policy-screen.html"><h3>政策申报初筛工具</h3><p>快速进行企业政策申报资格初筛。</p></a>
+      <a class="nav-card" href="visit-records.html"><h3>走访记录查询</h3><p>查看并检索历史走访记录台账。</p></a>
+      <a class="nav-card" href="policy-records.html"><h3>企业初筛记录</h3><p>查看企业政策初筛留痕记录。</p></a>
+    </section>
+
+    <section class="stats-grid">
+      <article class="stat-card"><h4>本月走访记录</h4><p id="statVisits">—</p></article>
+      <article class="stat-card"><h4>企业初筛记录</h4><p id="statPolicy">—</p></article>
+      <article class="stat-card"><h4>服务企业</h4><p id="statCompanies">—</p></article>
+      <article class="stat-card"><h4>云端同步状态</h4><p id="statSync">—</p></article>
+    </section>
+
+    <section id="visit-workspace" class="workspace">
+      <section class="card form-card">
+        <h2>企业走访信息录入</h2>
+        <h3>一、企业基础信息</h3>
+        <div class="grid">
+          <div><label for="company">企业名称</label><input id="company" /></div>
+          <div><label for="visitStaff">走访人员</label><input id="visitStaff" /></div>
+          <div><label for="contact">联系人</label><input id="contact" /></div>
+          <div><label for="phone">联系电话</label><input id="phone" /></div>
+          <div class="full"><label for="address">企业实际办公地</label><input id="address" /></div>
+        </div>
+        <h3>二、走访内容</h3>
+        <div class="grid">
+          <div class="full"><label for="basic">企业基本情况</label><textarea id="basic"></textarea></div>
+          <div class="full"><label for="needs">企业需求</label><textarea id="needs"></textarea></div>
+          <div class="full"><label for="solution">园区解决方案</label><textarea id="solution"></textarea></div>
+        </div>
+      </section>
+      <section class="card summary-card">
+        <h2>走访总结预览</h2>
+        <p id="summary">点击生成后将在此处展示走访总结</p>
+        <div class="action-grid">
+          <button id="generateBtn" type="button">生成走访总结</button>
+          <button id="copyBtn" type="button">复制总结</button>
+          <button id="saveVisitBtn" type="button">保存到走访记录</button>
+          <button id="clearBtn" type="button">清空表单</button>
+        </div>
+      </section>
+    </section>
+
+    <section class="card recent-card">
+      <h2>最近走访记录</h2>
+      <div id="recentRecords">加载中...</div>
+    </section>
+  </main>
+
+  <div id="profileModal" class="profile-modal" aria-hidden="true">
+    <section class="auth-panel">
+      <h3>个人资料</h3>
+      <form id="profileForm">
+        <div><label for="profileNickname">昵称</label><input id="profileNickname" required /></div>
+        <div class="actions">
+          <button id="saveProfileBtn" data-action="save-profile" type="submit">保存修改</button>
+          <button type="button" id="closeProfileBtn" data-action="close-profile">取消</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co';
+const SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';
+const STORAGE_USERS='pt_users_v1';
+const STORAGE_CURRENT='pt_current_user_v1';
+const noticeEl=document.getElementById('appNotice'); const showNotice=(t)=>{if(noticeEl)noticeEl.textContent=t||''};
+if(!window.supabase||typeof window.supabase.createClient!=='function'){showNotice('Supabase SDK 加载失败');return;}
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY); window.supabaseClient=supabaseClient;
+const withTimeout=(p,ms,m)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error(m)),ms))]);
+const $=(id)=>document.getElementById(id); const getValue=(id)=>(($(id)||{}).value||'').trim(); const fieldIds=['company','visitStaff','contact','phone','address','basic','needs','solution'];
+let currentProfile=null; let currentUserId=''; let editingRecordId='';
+const setCurrentUser=(email)=>email?localStorage.setItem(STORAGE_CURRENT,email.toLowerCase()):localStorage.removeItem(STORAGE_CURRENT);
+const getCurrentUser=()=> (localStorage.getItem(STORAGE_CURRENT)||'').toLowerCase();
+const loadUsers=()=>JSON.parse(localStorage.getItem(STORAGE_USERS)||'{}');
+const draftKey=()=>currentUserId?`visitDraft_${currentUserId}`:'';
+const saveDraft=()=>{ const k=draftKey(); if(!k) return; const d={}; fieldIds.forEach(id=>d[id]=getValue(id)); localStorage.setItem(k,JSON.stringify(d)); };
+const restoreDraft=()=>{ const k=draftKey(); if(!k) return; try{ const d=JSON.parse(localStorage.getItem(k)||'{}'); fieldIds.forEach(id=>{if($(id)&&d[id]) $(id).value=d[id];}); }catch(_){} };
+const clearDraft=()=>{ const k=draftKey(); if(k) localStorage.removeItem(k); };
+const refreshAuthUI=()=>{const email=getCurrentUser();const users=loadUsers(); const n=(currentProfile&&currentProfile.nickname)||(users[email]&&users[email].nickname)||email; if($('userNickname')) $('userNickname').textContent=n||'-'; if($('userAvatar')) $('userAvatar').textContent=(n&&n[0]?n[0]:'人').toUpperCase(); if($('profileNickname')) $('profileNickname').value=(currentProfile&&currentProfile.nickname)||n||'';};
+const loadRecent=async()=>{ const box=$('recentRecords'); if(!box||!currentUserId) return; box.textContent='加载中...'; try{ const {data,error}=await supabaseClient.from('visit_records').select('id,company_name,contact_name,contact_phone,enterprise_needs,created_at,updated_at').eq('user_id',currentUserId).order('updated_at',{ascending:false}).limit(3); if(error) throw error; if(!data||!data.length){ box.textContent='暂无最近走访记录'; return; } box.innerHTML=data.map(r=>`<article class="recent-item"><h4>${r.company_name||'未命名企业'}</h4><p>联系人：${r.contact_name||'—'} ｜ 联系电话：${r.contact_phone||'—'}</p><p>企业需求：${(r.enterprise_needs||'—').slice(0,80)}</p><small>更新时间：${new Date(r.updated_at||r.created_at).toLocaleString('zh-CN')}</small></article>`).join(''); }catch(_){ box.textContent='最近记录加载失败'; }};
+const loadStats=async()=>{ const m1=$('statVisits'),m2=$('statPolicy'),m3=$('statCompanies'),m4=$('statSync'); try{ const start=new Date(); start.setDate(1); start.setHours(0,0,0,0); const iso=start.toISOString(); const [visitsRes,policyRes,companyRes]=await Promise.all([
+ supabaseClient.from('visit_records').select('id',{count:'exact',head:true}).eq('user_id',currentUserId).gte('created_at',iso),
+ supabaseClient.from('policy_records').select('id',{count:'exact',head:true}).eq('user_id',currentUserId),
+ supabaseClient.from('visit_records').select('company_name').eq('user_id',currentUserId)
+]); m1.textContent=visitsRes.count??'—'; m2.textContent=policyRes.count??'—'; m3.textContent=companyRes.data?new Set(companyRes.data.map(i=>i.company_name).filter(Boolean)).size:'—'; m4.textContent='已连接'; }catch(_){ [m1,m2,m3,m4].forEach(el=>el&&(el.textContent='—')); }};
+(async()=>{ try{ const {data,error}=await withTimeout(supabaseClient.auth.getSession(),12000,'获取登录状态超时'); if(error) throw error; const s=data?.session; const email=(s?.user?.email||'').toLowerCase(); if(!s?.user?.id||!email){ window.location.replace('login.html'); return; } currentUserId=s.user.id; setCurrentUser(email); const users=loadUsers(); currentProfile={nickname:(users[email]&&users[email].nickname)||email}; refreshAuthUI(); restoreDraft(); await Promise.all([loadRecent(),loadStats()]); }catch(_){ window.location.replace('login.html'); }})();
+fieldIds.forEach(id=>$(id)&&$(id).addEventListener('input',saveDraft));
+$('generateBtn')?.addEventListener('click',()=>{ const now=new Date(); const dv=(id)=>getValue(id)||'未填写'; $('summary').textContent=`【${dv('company')}】走访总结\n\n走访时间：${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日\n走访人员：${dv('visitStaff')}\n联系人：${dv('contact')}\n联系电话：${dv('phone')}\n企业实际办公地：${dv('address')}\n\n一、企业基本情况\n该企业基本情况如下：${dv('basic')}\n\n二、企业诉求\n企业本次走访中提出的主要需求为：${dv('needs')}\n\n三、园区服务情况\n针对企业诉求，园区已开展或拟开展的服务措施为：${dv('solution')}\n\n四、后续跟进建议\n建议后续持续关注企业诉求办理进展，结合企业实际情况做好空间、政策、资源对接等服务工作。`;});
+$('copyBtn')?.addEventListener('click',async()=>{ const t=$('summary').textContent.trim(); if(!t||t.includes('点击生成后')) return alert('请先生成走访总结，再复制。'); try{ await navigator.clipboard.writeText(t); alert('走访总结已复制。'); }catch(_){ alert('复制失败，请手动复制。'); }});
+$('clearBtn')?.addEventListener('click',()=>{ fieldIds.forEach(id=>{if($(id)) $(id).value='';}); $('summary').textContent='点击生成后将在此处展示走访总结'; editingRecordId=''; $('saveVisitBtn').textContent='保存到走访记录'; clearDraft(); });
+$('saveVisitBtn')?.addEventListener('click',async()=>{ const btn=$('saveVisitBtn'); const old=btn.textContent; btn.disabled=true; btn.textContent='保存中...'; try{ const {data,error}=await withTimeout(supabaseClient.auth.getSession(),5000,'获取登录状态超时'); if(error) throw error; const s=data?.session; if(!s?.user?.id){ window.location.replace('login.html'); return; } const summaryText=$('summary').textContent.trim(); if(!getValue('company')){ alert('请先填写企业名称'); return; } if(!summaryText||summaryText.includes('点击生成后')){ alert('请先生成走访总结'); return; } const formData={}; fieldIds.forEach(id=>formData[id]=getValue(id)); const payload={user_id:s.user.id,company_name:getValue('company'),visit_staff:getValue('visitStaff'),contact_name:getValue('contact'),contact_phone:getValue('phone'),office_address:getValue('address'),basic_info:getValue('basic'),enterprise_needs:getValue('needs'),park_solution:getValue('solution'),summary_text:summaryText,form_data:formData}; let q=supabaseClient.from('visit_records'); const res=editingRecordId?await q.update(payload).eq('id',editingRecordId):await q.insert(payload); if(res.error){ alert('保存失败，请稍后重试。'); return; } alert('已保存到云端走访记录'); clearDraft(); await Promise.all([loadRecent(),loadStats()]); }catch(_){ alert('保存失败，请稍后重试。'); } finally{ btn.disabled=false; btn.textContent=editingRecordId?'更新走访记录':'保存到走访记录'; }});
+document.addEventListener('click',(e)=>{ const btn=e.target.closest('button[data-action]'); if(!btn) return; const a=btn.dataset.action; if(a==='open-profile') $('profileModal')?.classList.add('show'); if(a==='close-profile') $('profileModal')?.classList.remove('show'); if(a==='logout'){ handleLogout(btn); }});
+async function handleLogout(button){ const t=button.textContent; button.disabled=true; button.textContent='退出中...'; try{ await withTimeout(supabaseClient.auth.signOut({scope:'local'}),5000,'退出登录超时'); }catch(_){} finally{ setCurrentUser(''); window.location.replace('login.html?logged_out=1'); button.disabled=false; button.textContent=t; }}
+$('profileForm')?.addEventListener('submit',async(e)=>{ e.preventDefault(); const nickname=getValue('profileNickname'); if(!nickname) return; const {data}=await supabaseClient.auth.getSession(); const s=data?.session; if(!s?.user?.id) return window.location.replace('login.html'); const {error}=await supabaseClient.from('profiles').upsert({id:s.user.id,email:(s.user.email||'').toLowerCase(),nickname,updated_at:new Date().toISOString()},{onConflict:'id'}); if(error){ alert('个人资料保存失败，请稍后重试。'); return; } const users=loadUsers(); users[(s.user.email||'').toLowerCase()]={...(users[(s.user.email||'').toLowerCase()]||{}),nickname}; localStorage.setItem(STORAGE_USERS,JSON.stringify(users)); currentProfile={nickname}; refreshAuthUI(); $('profileModal').classList.remove('show'); alert('个人资料已保存'); });
+});
+</script>
+</body>
+</html>
