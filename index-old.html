@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>园区企业服务工具箱</title>
+  <style>
+    :root {
+      --bg: #eef3fb;
+      --bg-accent: #e6eefc;
+      --card: #ffffff;
+      --text: #1c2b45;
+      --muted: #5f6f89;
+      --primary: #1f5fbf;
+      --primary-dark: #184d9a;
+      --secondary: #0c7ea2;
+      --light: #6b7f9d;
+      --border: #d7e2f2;
+      --shadow: 0 10px 30px rgba(20, 50, 100, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      background: linear-gradient(180deg, var(--bg-accent) 0%, var(--bg) 220px, var(--bg) 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .container { max-width: 980px; margin: 24px auto 32px; padding: 0 16px; }
+    .hero {
+      background: linear-gradient(135deg, #12489c 0%, #1a66cf 68%, #2b79d9 100%);
+      color: #fff;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 22px 24px;
+      margin-bottom: 14px;
+    }
+    .hero h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: .5px; }
+    .hero p { margin: 0; opacity: .95; font-size: 14px; }
+    .hero-top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .auth-box{ background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.35); border-radius:12px; padding:10px 12px; min-width:260px;}
+    .auth-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+    .auth-text{font-size:13px; margin-bottom:8px; color:#f1f6ff;}
+    .user-entry{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+    .profile-trigger{display:flex; align-items:center; gap:8px; border:none; background:transparent; color:#fff; cursor:pointer; padding:0;}
+    .profile-trigger:hover{opacity:.92;}
+    .avatar{width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#d4e4ff,#b8d2fa); color:#174999; display:flex; align-items:center; justify-content:center; font-weight:700; border:1px solid rgba(255,255,255,.6);}
+    .avatar.has-image{padding:0; overflow:hidden; color:transparent;}
+    .avatar.has-image img{width:100%; height:100%; object-fit:cover; display:block;}
+    .nickname{font-size:14px; font-weight:700; color:#f4f8ff;}
+    .auth-btn{background:#fff; color:#1b56ae; border:none; border-radius:8px; padding:6px 10px; font-size:13px; font-weight:700; cursor:pointer;}
+    .auth-btn.ghost{background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.45);}
+    .user-pill{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.45);backdrop-filter:blur(6px)}
+    .auth-btn.subtle{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.45);color:#fff;}
+    .auth-btn.subtle:hover,.auth-btn.ghost:hover{background:rgba(255,255,255,.32);}
+    .profile-modal{background:rgba(9,27,58,.35);}
+    #profileForm .actions button[type="submit"]{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;}
+    #profileForm .actions .cancel-btn{background:#e6eefc;color:#1d4679;border:1px solid #bdd2f2;box-shadow:none;}
+
+    .notice {margin: 12px 0 14px; background:rgba(240,247,255,.92); border:1px solid #c6dcfa; color:#2b5384; border-radius:12px; padding:10px 12px; font-size:13px;}
+    .auth-modal{position:fixed; inset:0; background:rgba(9,27,58,.45); display:none; align-items:center; justify-content:center; padding:16px; z-index:20;}
+    .auth-modal.show{display:flex;}
+    .profile-modal{position:fixed; inset:0; background:rgba(9,27,58,.45); display:none; align-items:center; justify-content:center; padding:16px; z-index:25;}
+    .profile-modal.show{display:flex;}
+    .auth-panel{width:min(460px,100%); background:#ffffff; border-radius:16px; border:1px solid #d8e6fb; box-shadow:0 16px 36px rgba(18,61,124,.18); padding:20px;}
+    .auth-tabs{display:flex; gap:8px; margin-bottom:12px;}
+    .auth-tab{flex:1; border:1px solid var(--border); background:#f6f9ff; color:#27476b; border-radius:8px; padding:8px; font-weight:700; cursor:pointer;}
+    .auth-tab.active{background:linear-gradient(135deg, var(--primary), var(--primary-dark)); color:#fff; border-color:transparent;}
+    .hidden{display:none;}
+    .form-note{font-size:12px;color:#5f6f89;margin-top:8px;}
+    .profile-avatar-wrap{display:flex; align-items:center; gap:14px; margin-bottom:10px; padding:12px; border:1px solid #dbe8fb; border-radius:12px; background:linear-gradient(180deg,#fafdff,#f2f8ff);} 
+    .profile-avatar-preview{width:64px; height:64px; border-radius:50%; border:2px solid #bcd6fb; background:linear-gradient(135deg,#eaf1ff,#d4e6ff); display:flex; align-items:center; justify-content:center; overflow:hidden; color:#1b56ae; font-weight:700;box-shadow:0 8px 16px rgba(27,86,174,.15);} 
+    .profile-avatar-preview img{width:100%; height:100%; object-fit:cover; display:block;}
+    .hero-tools { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-tools a {
+      display: inline-block;
+      text-decoration: none;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.36);
+      color: #fff;
+      padding: 7px 12px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .hero-tools a:hover { background: rgba(255,255,255,.28); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+    .section-title { margin: 0 0 14px; font-size: 18px; color: #123f80; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; margin-bottom: 7px; font-weight: 600; font-size: 14px; color: #284667; }
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fbfdff;
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #78a9ea;
+      box-shadow: 0 0 0 3px rgba(31, 95, 191, .12);
+      background: #fff;
+    }
+    textarea { min-height: 94px; resize: vertical; }
+    .actions { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; }
+    button {
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 10px 18px;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(18, 72, 156, .18);
+      transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+    }
+    button:hover { filter: brightness(1.03); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    #generateBtn { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); }
+    #copyBtn { background: linear-gradient(135deg, #0f91ba 0%, var(--secondary) 100%); }
+    #clearBtn { background: linear-gradient(135deg, #778aa9 0%, var(--light) 100%); }
+    .result {
+      margin-top: 18px;
+      border: 1px solid #b9d1f4;
+      background: linear-gradient(180deg, #fafdff 0%, #f2f7ff 100%);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .result h2 { margin: 0 0 8px; font-size: 17px; color: #123f80; }
+    #summary {
+      margin: 0;
+      white-space: pre-wrap;
+      color: #20324f;
+      font-size: 14px;
+      background: #fff;
+      border: 1px solid #d6e3f7;
+      border-radius: 10px;
+      padding: 14px;
+      min-height: 120px;
+    }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
+      .hero h1 { font-size: 24px; }
+      .hero-top { flex-direction:column; }
+      .auth-box { width:100%; min-width:0; }
+      .container { margin-top: 18px; }
+    }
+  </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main class="container">
+    <header class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>园区企业走访服务台账</h1>
+          <p>企业走访记录 · 政策申报初筛 · 服务台账管理</p>
+          <div class="hero-tools">
+            <a href="policy-screen.html">政策申报初筛工具</a>
+            <a href="visit-records.html">走访记录查询</a>
+            <a href="policy-records.html">企业初筛记录</a>
+          </div>
+        </div>
+        <div class="auth-box user-pill">
+          <div id="authGuest" class="auth-row">
+            <span class="auth-text">未登录</span>
+            <button id="openLoginBtn" class="auth-btn" type="button">登录 / 注册</button>
+          </div>
+          <div id="authUser" class="hidden">
+            <div class="user-entry">
+              <button id="openProfileBtn" data-action="open-profile" class="profile-trigger" type="button">
+                <span id="userAvatar" class="avatar">U</span>
+                <span id="userNickname" class="nickname">-</span>
+              </button>
+              <button id="profileEntryBtn" data-action="open-profile" class="auth-btn ghost" type="button">个人资料</button>
+              <button id="logoutBtn" data-action="logout" class="auth-btn subtle" type="button">退出登录</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div id="appNotice" class="notice">提示：当前账号已接入云端登录，新增记录将保存至云端数据库；历史本机记录可通过迁移按钮同步到云端。请勿录入敏感企业信息。</div>
+    <section class="card">
+      <h2 class="section-title">走访信息录入</h2>
+
+      <div class="grid">
+        <div><label for="company">企业名称</label><input id="company" placeholder="例如：宁波云论光电力科技有限公司" /></div>
+        <div><label for="visitStaff">走访人员</label><input id="visitStaff" placeholder="例如：张三、李四" /></div>
+        <div><label for="contact">联系人</label><input id="contact" placeholder="例如：王经理" /></div>
+        <div><label for="phone">联系电话</label><input id="phone" placeholder="例如：13800000000" /></div>
+        <div class="full"><label for="address">企业实际办公地</label><input id="address" placeholder="例如：宁波市鄞州区XX路XX号XX楼" /></div>
+
+        <div class="full"><label for="basic">企业基本情况</label><textarea id="basic" placeholder="可填写业务板块、人员规模、发展方向等"></textarea></div>
+        <div class="full"><label for="needs">企业需求</label><textarea id="needs" placeholder="可填写场地、融资、招工、市场对接、政策配套等诉求"></textarea></div>
+        <div class="full"><label for="solution">园区解决方案</label><textarea id="solution" placeholder="可填写已对接事项、责任部门、下一步推进建议"></textarea></div>
+      </div>
+
+      <div class="actions">
+        <button id="generateBtn" type="button">生成走访总结</button>
+        <button id="copyBtn" type="button">复制总结</button>
+        <button id="saveVisitBtn" type="button" style="background:linear-gradient(135deg,#1e76c6,#1b56ae)">保存到走访记录</button>
+        <button id="clearBtn" type="button">清空表单</button>
+      </div>
+
+      <div class="result" aria-live="polite">
+        <h2>走访总结</h2>
+        <p id="summary">（点击“生成走访总结”后会显示在这里）</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="authModal" class="auth-modal" aria-hidden="true">
+    <section class="auth-panel">
+      <div class="auth-tabs">
+        <button id="tabLogin" class="auth-tab active" type="button">登录</button>
+        <button id="tabRegister" class="auth-tab" type="button">注册</button>
+      </div>
+      <form id="loginForm">
+        <div><label for="loginUsername">账号</label><input id="loginUsername" required /></div>
+        <div><label for="loginPassword">密码</label><input id="loginPassword" type="password" required /></div>
+        <div class="actions"><button type="submit" id="loginSubmit">立即登录</button><button type="button" id="closeModalBtn" class="auth-btn ghost">取消</button></div>
+      </form>
+      <form id="registerForm" class="hidden">
+        <div><label for="regUsername">账号</label><input id="regUsername" required /></div>
+        <div><label for="regNickname">昵称</label><input id="regNickname" required /></div>
+        <div><label for="regPassword">密码</label><input id="regPassword" type="password" required /></div>
+        <div><label for="regConfirmPassword">确认密码</label><input id="regConfirmPassword" type="password" required /></div>
+        <div class="actions"><button type="submit" id="registerSubmit">注册并登录</button><button type="button" id="closeModalBtn2" class="auth-btn ghost">取消</button></div>
+        <p class="form-note">密码将使用浏览器加密哈希后保存（本地版，仅用于基础防明文）。</p>
+      </form>
+    </section>
+  </div>
+
+
+  <div id="profileModal" class="profile-modal" aria-hidden="true">
+    <section class="auth-panel">
+      <h3 style="margin:0 0 14px;color:#123f80;font-size:20px;">个人资料</h3>
+      <form id="profileForm">
+        <div class="profile-avatar-wrap">
+          <span id="profileAvatarPreview" class="profile-avatar-preview">人</span>
+          <div style="flex:1;">
+            <label for="profileAvatarInput">头像上传</label>
+            <input id="profileAvatarInput" type="file" accept="image/*" />
+            <p class="form-note" style="margin:6px 0 0;">建议上传 2MB 以内图片，上传后会即时预览并保存到本地。</p>
+          </div>
+        </div>
+        <div><label for="profileNickname">昵称</label><input id="profileNickname" required /></div>
+        <div class="actions">
+          <button id="saveProfileBtn" data-action="save-profile" type="submit">保存修改</button>
+          <button type="button" id="closeProfileBtn" data-action="close-profile" class="cancel-btn">取消</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const SUPABASE_URL='https://gzuihbsvghmryybyphfl.supabase.co';
+      const SUPABASE_KEY='sb_publishable_5Tk7IKGl8NNP78whhTDgdA_H7xO6hLl';
+      const STORAGE_USERS='pt_users_v1';
+      const STORAGE_CURRENT='pt_current_user_v1';
+      const AVATAR_BUCKET='avatars';
+      const MAX_AVATAR_SIZE=2*1024*1024;
+      const ALLOWED_TYPES=['image/jpeg','image/png','image/webp'];
+      const DEFAULT_AVATAR='人';
+      const noticeEl = document.getElementById('appNotice');
+      const showNotice=(t)=>{ if(noticeEl) noticeEl.textContent=t; };
+      if(!window.supabase||typeof window.supabase.createClient!=='function'){ showNotice('Supabase SDK 加载失败，请刷新后重试。'); return; }
+      const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+      window.supabaseClient=supabaseClient;
+      const withTimeout=(promise,ms,timeoutMessage)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(timeoutMessage)),ms))]);
+      const $=(id)=>document.getElementById(id);
+      const safeBind=(el,evt,fn)=>{ if(el) el.addEventListener(evt,fn); };
+      const loadUsers=()=>JSON.parse(localStorage.getItem(STORAGE_USERS)||'{}');
+      const setCurrentUser=(email)=>email?localStorage.setItem(STORAGE_CURRENT,email.toLowerCase()):localStorage.removeItem(STORAGE_CURRENT);
+      const getCurrentUser=()=> (localStorage.getItem(STORAGE_CURRENT)||'').toLowerCase();
+      let currentProfile=null;
+      let selectedAvatarFile=null;
+      let currentUserId='';
+      const profileCacheKey=(userId)=>`profileCache_${userId}`;
+      const readProfileCache=(userId)=>{ try{ const raw=localStorage.getItem(profileCacheKey(userId)); return raw?JSON.parse(raw):null; }catch(_){ return null; } };
+      const writeProfileCache=(userId,profile)=>{ try{ if(!userId||!profile) return; localStorage.setItem(profileCacheKey(userId),JSON.stringify({nickname:profile.nickname||'',avatar_url:profile.avatar_url||'',email:profile.email||'',updated_at:profile.updated_at||new Date().toISOString()})); }catch(_){} };
+      const renderAvatar=(container,nickname,avatarUrl)=>{ if(!container) return; container.classList.remove('has-image'); container.textContent=(nickname&&nickname[0]?nickname[0]:DEFAULT_AVATAR).toUpperCase(); if(avatarUrl){container.classList.add('has-image');container.innerHTML='<img alt="用户头像" src="">';const img=container.querySelector('img'); if(img){ img.onerror=()=>{ container.classList.remove('has-image'); container.textContent=(nickname&&nickname[0]?nickname[0]:DEFAULT_AVATAR).toUpperCase(); console.warn('头像加载失败，已使用默认头像'); showNotice('头像加载失败，已使用默认头像'); }; img.src=avatarUrl; }} };
+      const refreshAuthUI=()=>{ const email=getCurrentUser(); const users=loadUsers(); const guest=$('authGuest'); const user=$('authUser'); const nick=$('userNickname'); const avatar=$('userAvatar'); if(email){ guest&&guest.classList.add('hidden'); user&&user.classList.remove('hidden'); const fallback=(users[email]&&users[email].nickname)||email; const name=(currentProfile&&currentProfile.nickname)||fallback; if(nick) nick.textContent=name; renderAvatar(avatar,name,(currentProfile&&currentProfile.avatar_url)||(users[email]&&users[email].avatarDataUrl)||''); } else { guest&&guest.classList.remove('hidden'); user&&user.classList.add('hidden'); } };
+      async function ensureProfile(session){
+        const email=(session?.user?.email||'').toLowerCase(); if(!email) return null;
+        const userId=session?.user?.id;
+        const users=loadUsers(); const localUser=users[email]||{};
+        showNotice('正在加载用户资料...');
+        try{
+          const {data:found,error}=await withTimeout(supabaseClient.from('profiles').select('*').eq('id',userId).maybeSingle(),10000,'获取个人资料超时');
+          if(error) throw error;
+          currentProfile=found||{id:userId,email,nickname:localUser.nickname||email.split('@')[0]||'用户',avatar_url:localUser.avatarDataUrl||''};
+          users[email]={...localUser,nickname:currentProfile.nickname||localUser.nickname||email,avatarDataUrl:currentProfile.avatar_url||localUser.avatarDataUrl||''}; localStorage.setItem(STORAGE_USERS,JSON.stringify(users));
+          writeProfileCache(userId,currentProfile);
+          if($('profileNickname')) $('profileNickname').value=currentProfile.nickname||'';
+          renderAvatar($('profileAvatarPreview'),currentProfile.nickname,currentProfile.avatar_url||users[email].avatarDataUrl||'');
+          refreshAuthUI();
+          showNotice('');
+          return currentProfile;
+        }catch(err){
+          console.warn('用户资料加载失败，已继续使用缓存资料',err);
+          showNotice('用户资料加载较慢，已显示缓存资料');
+          return currentProfile;
+        }
+      }
+
+      (async()=>{
+        showNotice('正在检查登录状态...');
+        const slowTimer=setTimeout(()=>showNotice('登录状态检查较慢，请检查网络后刷新页面。'),8000);
+        try{
+          const {data,error}=await withTimeout(supabaseClient.auth.getSession(),12000,'获取登录状态超时');
+          if(error) throw error;
+          const session=data?.session;
+          const email=(session?.user?.email||'').toLowerCase();
+          if(!session?.user?.id||!email){ window.location.replace('login.html'); return; }
+          currentUserId=session.user.id;
+          setCurrentUser(email);
+          const cached=readProfileCache(currentUserId);
+          if(cached){
+            currentProfile={id:currentUserId,email:cached.email||email,nickname:cached.nickname||email.split('@')[0]||'用户',avatar_url:cached.avatar_url||'',updated_at:cached.updated_at};
+            refreshAuthUI();
+            if($('profileNickname')) $('profileNickname').value=currentProfile.nickname||'';
+            renderAvatar($('profileAvatarPreview'),currentProfile.nickname,currentProfile.avatar_url||'');
+          }else{
+            refreshAuthUI();
+          }
+          clearTimeout(slowTimer);
+          await ensureProfile(session);
+        }catch(e){
+          clearTimeout(slowTimer);
+          showNotice('登录状态检查较慢，请检查网络后刷新页面。');
+        }
+      })();
+      supabaseClient.auth.onAuthStateChange(async(_e,session)=>{ const email=(session&&session.user&&session.user.email||'').toLowerCase(); if(email){ currentUserId=session.user.id||''; setCurrentUser(email); await ensureProfile(session); refreshAuthUI(); } else { currentUserId=''; setCurrentUser(''); window.location.replace('login.html'); } });
+
+      safeBind($('openLoginBtn'),'click',()=>{ window.location.href='login.html'; });
+      async function handleLogout(button){
+        console.log('logout clicked');
+        const originalText=button?button.textContent:'退出登录';
+        if(button){ button.disabled=true; button.textContent='退出中...'; }
+        try{
+          if(window.supabaseClient&&window.supabaseClient.auth){
+            const {error}=await withTimeout(window.supabaseClient.auth.signOut({ scope:'local' }),5000,'退出登录超时');
+            if(error){ console.error('logout error:', error); console.log('logout error'); }
+            else { console.log('logout success'); }
+          }else{ console.warn('supabaseClient not found, fallback redirect'); }
+        }catch(error){ console.error('logout error or timeout:', error); console.log(error?.message==='退出登录超时'?'logout timeout':'logout error'); }
+        finally{ currentUserId=''; setCurrentUser(''); if(button){ button.disabled=false; button.textContent=originalText||'退出登录'; } window.location.replace('login.html?logged_out=1'); }
+      }
+      document.addEventListener('click',(e)=>{
+        const btn=e.target.closest('button[data-action]');
+        if(!btn) return;
+        const action=btn.dataset.action;
+        if(action==='open-profile'){ console.log('open profile clicked'); $('profileModal')?.classList.add('show'); }
+        if(action==='close-profile'){ $('profileModal')?.classList.remove('show'); }
+        if(action==='logout'){ handleLogout(btn); }
+      });
+      async function compressAvatar(file){ try{ const img=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('头像读取失败')); i.src=URL.createObjectURL(file); }); const max=400; const scale=Math.min(1,max/img.width,max/img.height); const w=Math.max(1,Math.round(img.width*scale)); const h=Math.max(1,Math.round(img.height*scale)); const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h; canvas.getContext('2d').drawImage(img,0,0,w,h); const blob=await new Promise((res)=>canvas.toBlob(res,'image/jpeg',0.8)); if(!blob||blob.size>300*1024) throw new Error('头像压缩失败'); return new File([blob],`avatar-${Date.now()}.jpg`,{type:'image/jpeg'}); }catch(err){ throw err; } }
+      safeBind($('profileAvatarInput'),'change',(e)=>{ const file=e.target?.files?.[0]; if(!file) return; if(!ALLOWED_TYPES.includes(file.type)){ alert('仅支持 JPG、PNG、WEBP 格式头像。'); e.target.value=''; return; } if(file.size>MAX_AVATAR_SIZE){ alert('头像图片过大，请上传 2MB 以内的图片。'); e.target.value=''; return; } selectedAvatarFile=file; const url=URL.createObjectURL(file); renderAvatar($('profileAvatarPreview'),$('profileNickname')?.value||currentProfile?.nickname||'',url); });
+      safeBind($('profileForm'),'submit',async(e)=>{ e.preventDefault(); console.log('save profile clicked'); const submitBtn=e.submitter||$('profileForm')?.querySelector('button[type="submit"]'); const oldText=submitBtn&&submitBtn.textContent; if(submitBtn){ submitBtn.disabled=true; submitBtn.textContent='保存中...'; } try{ console.log('get session start'); const {data,error}=await withTimeout(supabaseClient.auth.getSession(),5000,'保存超时，请检查网络后重试。'); if(error){ console.error('get session error',error); console.log('get session error'); throw error; } const session=data?.session; if(!session?.user?.id){ alert('请先登录后再修改个人资料'); window.location.replace('login.html'); return; } console.log('get session success'); const nickname=(($('profileNickname')||{}).value||'').trim(); if(!nickname){ alert('请输入昵称。'); return; } let avatarUrl=currentProfile?.avatar_url||''; if(selectedAvatarFile){ if(!ALLOWED_TYPES.includes(selectedAvatarFile.type)){ alert('头像上传失败，请检查图片大小、网络或 avatars 存储权限。'); return; } if(selectedAvatarFile.size>MAX_AVATAR_SIZE){ alert('头像上传失败，请检查图片大小、网络或 avatars 存储权限。'); return; } let uploadFile; try{ uploadFile=await compressAvatar(selectedAvatarFile); }catch(_){ alert('头像压缩失败，请换一张图片后重试。'); return; } console.log('avatar upload start'); const path=`${session.user.id}/avatar-${Date.now()}.jpg`; const {error:upErr}=await withTimeout(supabaseClient.storage.from(AVATAR_BUCKET).upload(path,uploadFile,{upsert:false,contentType:'image/jpeg'}),15000,'保存超时，请检查网络后重试。'); if(upErr){ console.error('avatar upload error',upErr); console.log('avatar upload error'); alert('头像上传失败，请检查图片大小、网络或 avatars 存储权限。'); return; } console.log('avatar upload success'); const {data:pub}=supabaseClient.storage.from(AVATAR_BUCKET).getPublicUrl(path); avatarUrl=(pub&&pub.publicUrl)||avatarUrl; } console.log('profile upsert start'); const {data:updated,error:updateErr}=await withTimeout(supabaseClient.from('profiles').upsert({id:session.user.id,email:(session.user.email||'').toLowerCase(),nickname,avatar_url:avatarUrl,updated_at:new Date().toISOString()},{onConflict:'id'}).select().single(),10000,'保存超时，请检查网络后重试。'); if(updateErr){ console.error('profile upsert error',updateErr); console.log('profile upsert error'); alert('个人资料保存失败，请稍后重试。'); return; } console.log('profile upsert success'); currentProfile=updated; const email=(session.user.email||'').toLowerCase(); const users=loadUsers(); users[email]={...(users[email]||{}),nickname,avatarDataUrl:avatarUrl||users[email]?.avatarDataUrl||''}; localStorage.setItem(STORAGE_USERS,JSON.stringify(users)); writeProfileCache(session.user.id,currentProfile); refreshAuthUI(); renderAvatar($('profileAvatarPreview'),nickname,avatarUrl); selectedAvatarFile=null; if($('profileAvatarInput')) $('profileAvatarInput').value=''; $('profileModal')?.classList.remove('show'); alert('个人资料已保存'); }catch(err){ console.error('save profile error',err); if(err?.message==='保存超时，请检查网络后重试。'){ alert('保存超时，请检查网络后重试。'); }else{ alert('个人资料保存失败，请稍后重试。'); } }finally{ if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent='保存修改'; } }});
+
+      const getValue=(id)=>(($(id)||{}).value||'').trim();
+      const displayValue=(id)=>getValue(id)||'未填写';
+      const summaryEl=$('summary');
+      const fieldIds=['company','visitStaff','contact','phone','address','basic','needs','solution'];
+      safeBind($('generateBtn'),'click',()=>{
+        const now = new Date();
+        const company = displayValue('company');
+        const text = `【${company}】走访总结
+
+走访时间：${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日
+走访人员：${displayValue('visitStaff')}
+联系人：${displayValue('contact')}
+联系电话：${displayValue('phone')}
+企业实际办公地：${displayValue('address')}
+
+一、企业基本情况
+该企业基本情况如下：${displayValue('basic')}
+
+二、企业诉求
+企业本次走访中提出的主要需求为：${displayValue('needs')}
+
+三、园区服务情况
+针对企业诉求，园区已开展或拟开展的服务措施为：${displayValue('solution')}
+
+四、后续跟进建议
+建议后续持续关注企业诉求办理进展，结合企业实际情况做好空间、政策、资源对接等服务工作。`;
+        if(summaryEl) summaryEl.textContent=text;
+      });
+      safeBind($('copyBtn'),'click',async()=>{ const text=(summaryEl&&summaryEl.textContent||'').trim(); if(!text||text.includes('点击“生成走访总结”')) return alert('请先生成走访总结，再复制。'); try{ await navigator.clipboard.writeText(text); alert('走访总结已复制。'); }catch(_){ alert('复制失败，请手动复制。'); } });
+      safeBind($('clearBtn'),'click',()=>{ fieldIds.forEach((id)=>{ const el=$(id); if(el) el.value=''; }); if(summaryEl) summaryEl.textContent='（点击“生成走访总结”后会显示在这里）'; });
+      safeBind($('saveVisitBtn'),'click',async()=>{
+        const {data,error}=await withTimeout(supabaseClient.auth.getSession(),5000,'获取登录状态超时');
+        if(error){ alert('登录状态获取失败，请稍后重试。'); return; }
+        const session=data&&data.session;
+        if(!session||!session.user||!session.user.id){ alert('请先登录。'); window.location.replace('login.html'); return; }
+        const companyName=getValue('company');
+        if(!companyName){ alert('请先填写企业名称'); return; }
+        const summaryText=((summaryEl&&summaryEl.textContent)||'').trim();
+        if(!summaryText||summaryText.includes('点击“生成走访总结”')){ alert('请先生成走访总结'); return; }
+        const formData={};
+        fieldIds.forEach((id)=>{ formData[id]=getValue(id); });
+        const payload={
+          user_id: session.user.id,
+          company_name: companyName,
+          visit_staff: getValue('visitStaff'),
+          contact_name: getValue('contact'),
+          contact_phone: getValue('phone'),
+          office_address: getValue('address'),
+          basic_info: getValue('basic'),
+          enterprise_needs: getValue('needs'),
+          park_solution: getValue('solution'),
+          summary_text: summaryText,
+          form_data: formData
+        };
+        const {error:insertError}=await withTimeout(supabaseClient.from('visit_records').insert(payload),10000,'保存走访记录超时');
+        if(insertError){
+          alert('保存失败，请稍后重试。');
+          return;
+        }
+        alert('已保存到云端走访记录');
+      });
+      refreshAuthUI();
+    });
+  </script>
+</body>
+</html>
