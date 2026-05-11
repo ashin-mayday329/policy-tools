@@ -10,6 +10,9 @@
 <body>
   <main class="v2-container">
     <header class="hero-v2">
+      <div class="hero-glow hero-glow-a"></div>
+      <div class="hero-glow hero-glow-b"></div>
+      <div class="hero-grid"></div>
       <div class="hero-main">
         <span class="hero-kicker">园区企业服务系统</span>
         <h1>园区企业服务工具箱</h1>
@@ -21,9 +24,8 @@
         <div class="user-entry">
           <button id="openProfileBtn" data-action="open-profile" class="profile-trigger" type="button">
             <span id="userAvatar" class="avatar">人</span>
-            <span id="userNickname" class="nickname">-</span>
+            <span class="user-text"><span id="userNickname" class="nickname">-</span><small>园区服务人员</small></span>
           </button>
-          <small>园区服务人员</small>
         </div>
         <div class="user-actions">
           <button id="profileEntryBtn" data-action="open-profile" type="button">个人资料</button>
@@ -34,23 +36,26 @@
 
     <div id="appNotice" class="notice"></div>
 
-    <section class="nav-grid">
-      <a class="nav-card" href="#visit-workspace"><h3>企业走访服务台账</h3><p>当前页面，进入走访信息录入与总结生成。</p></a>
-      <a class="nav-card" href="policy-screen.html"><h3>政策申报初筛工具</h3><p>快速进行企业政策申报资格初筛。</p></a>
-      <a class="nav-card" href="visit-records.html"><h3>走访记录查询</h3><p>查看并检索历史走访记录台账。</p></a>
-      <a class="nav-card" href="policy-records.html"><h3>企业初筛记录</h3><p>查看企业政策初筛留痕记录。</p></a>
+    <section class="panel">
+      <h2 class="section-title">功能导航</h2>
+      <div class="nav-grid">
+        <a class="nav-card active" href="#visit-workspace"><span class="icon-box">📘</span><span class="dot"></span><h3>企业走访服务台账</h3><p>当前页面，进入走访信息录入与总结生成。</p></a>
+        <a class="nav-card" href="policy-screen.html"><span class="icon-box">🧭</span><span class="dot"></span><h3>政策申报初筛工具</h3><p>快速进行企业政策申报资格初筛。</p></a>
+        <a class="nav-card" href="visit-records.html"><span class="icon-box">🗂️</span><span class="dot"></span><h3>走访记录查询</h3><p>查看并检索历史走访记录台账。</p></a>
+        <a class="nav-card" href="policy-records.html"><span class="icon-box">📊</span><span class="dot"></span><h3>企业初筛记录</h3><p>查看企业政策初筛留痕记录。</p></a>
+      </div>
     </section>
 
     <section class="stats-grid">
-      <article class="stat-card"><h4>本月走访记录</h4><p id="statVisits">—</p></article>
-      <article class="stat-card"><h4>企业初筛记录</h4><p id="statPolicy">—</p></article>
-      <article class="stat-card"><h4>服务企业</h4><p id="statCompanies">—</p></article>
-      <article class="stat-card"><h4>云端同步状态</h4><p id="statSync">—</p></article>
+      <article class="stat-card"><i>📅</i><em></em><h4>本月走访记录</h4><p id="statVisits">—</p></article>
+      <article class="stat-card"><i>🧠</i><em></em><h4>企业初筛记录</h4><p id="statPolicy">—</p></article>
+      <article class="stat-card"><i>🏢</i><em></em><h4>服务企业</h4><p id="statCompanies">—</p></article>
+      <article class="stat-card"><i>☁️</i><em></em><h4>云端同步状态</h4><p id="statSync">—</p></article>
     </section>
 
-    <section id="visit-workspace" class="workspace">
+    <section id="visit-workspace" class="workspace panel">
       <section class="card form-card">
-        <h2>企业走访信息录入</h2>
+        <h2 class="section-title">企业走访信息录入</h2>
         <h3>一、企业基础信息</h3>
         <div class="grid">
           <div><label for="company">企业名称</label><input id="company" /></div>
@@ -67,7 +72,7 @@
         </div>
       </section>
       <section class="card summary-card">
-        <h2>走访总结预览</h2>
+        <h2 class="section-title">走访总结预览</h2>
         <p id="summary">点击生成后将在此处展示走访总结</p>
         <div class="action-grid">
           <button id="generateBtn" type="button">生成走访总结</button>
@@ -78,8 +83,8 @@
       </section>
     </section>
 
-    <section class="card recent-card">
-      <h2>最近走访记录</h2>
+    <section class="card recent-card panel">
+      <div class="section-head"><h2 class="section-title">最近走访记录</h2><span id="recentCount" class="tag">共 0 条</span></div>
       <div id="recentRecords">加载中...</div>
     </section>
   </main>
