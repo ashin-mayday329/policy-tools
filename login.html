@@ -8,21 +8,30 @@
 </head>
 <body>
 <main class="login-page">
-  <div class="login-hero-shell">
-    <div class="login-content">
-    <section class="brand-panel">
-      <span class="brand-chip">园区企业服务工具箱</span>
-      <h1 class="brand-title">园区企业服务工具箱</h1>
-      <p class="brand-subtitle">企业走访记录 · 政策申报初筛 · 服务台账管理</p>
-      <p class="brand-desc">面向园区服务人员的内部工作系统，让走访更高效，让服务更专业，让数据更有价值。</p>
+  <header class="login-topbar" aria-label="品牌栏">
+    <div class="topbar-brand">
+      <span class="topbar-logo" aria-hidden="true"></span>
+      <span>园区企业服务工具箱</span>
+    </div>
+    <div class="topbar-security">
+      <span class="shield-icon" aria-hidden="true">🛡</span>
+      <span>内部系统 · 仅限园区服务人员使用</span>
+    </div>
+  </header>
 
-      <div class="feature-list" aria-label="功能入口">
+  <div class="login-dots" aria-hidden="true"></div>
+
+  <div class="login-content">
+    <section class="login-brand">
+      <h1>园区企业服务工具箱</h1>
+      <p class="subtitle">企业走访记录 · 政策申报初筛 · 服务台账管理</p>
+      <p class="desc">面向园区服务人员的内部工作系统，让走访更高效，让服务更专业，让数据更有价值。</p>
+
+      <div class="feature-pills" aria-label="功能入口">
         <span class="feature-pill"><span class="feature-icon">访</span><span class="feature-title">企业走访记录</span></span>
         <span class="feature-pill"><span class="feature-icon">筛</span><span class="feature-title">政策申报初筛</span></span>
         <span class="feature-pill"><span class="feature-icon">账</span><span class="feature-title">服务台账管理</span></span>
       </div>
-
-      <p class="brand-footnote">数据安全 · 权限管理 · 专业可靠</p>
     </section>
 
     <section class="login-card">
@@ -41,8 +50,15 @@
       </form>
       <div id="message" class="msg"></div>
     </section>
-    </div>
   </div>
+
+  <footer class="login-footer" aria-label="版权信息">
+    <div class="footer-center">
+      <p>© 2026 园区企业服务工具箱 · 内部系统</p>
+      <p>安全 · 稳定 · 高效</p>
+    </div>
+    <div class="footer-right">数据安全保障中</div>
+  </footer>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
