@@ -92,26 +92,29 @@
     </section>
   </main>
 
-  <div id="profileModal" class="profile-modal" aria-hidden="true">
-    <section class="auth-panel">
-      <h3>个人资料</h3>
+  <div id="profileModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="profile-modal-panel">
+      <div class="profile-modal-header">
+        <h2>个人资料</h2>
+        <button type="button" class="modal-close-btn" id="closeProfileBtn" data-action="close-profile" aria-label="关闭">×</button>
+      </div>
       <form id="profileForm">
-        <div class="profile-avatar-upload">
+        <div class="profile-avatar-section">
           <label>头像</label>
           <div class="profile-avatar-preview">
             <img id="profileAvatarPreviewImg" alt="头像预览" />
             <span id="profileAvatarPreviewFallback" class="user-avatar-fallback">人</span>
           </div>
           <input id="profileAvatarInput" type="file" accept="image/jpeg,image/png,image/webp" />
-          <small>建议上传 2MB 以内 JPG / PNG 图片</small>
+          <p class="profile-avatar-tip">建议上传 2MB 以内 JPG / PNG 图片</p>
         </div>
-        <div><label for="profileNickname">昵称</label><input id="profileNickname" required /></div>
-        <div class="actions">
+        <div class="profile-field"><label for="profileNickname">昵称</label><input id="profileNickname" type="text" required /></div>
+        <div class="profile-modal-actions">
           <button id="saveProfileBtn" data-action="save-profile" type="submit">保存修改</button>
-          <button type="button" id="closeProfileBtn" data-action="close-profile">取消</button>
+          <button type="button" id="cancelProfileBtn" data-action="close-profile">取消</button>
         </div>
       </form>
-    </section>
+    </div>
   </div>
 
 <script>
@@ -151,10 +154,10 @@ $('generateBtn')?.addEventListener('click',()=>{ const now=new Date(); const dv=
 $('copyBtn')?.addEventListener('click',async()=>{ const t=$('summary').textContent.trim(); if(!t||t.includes('点击生成后')) return alert('请先生成走访总结，再复制。'); try{ await navigator.clipboard.writeText(t); alert('走访总结已复制。'); }catch(_){ alert('复制失败，请手动复制。'); }});
 $('clearBtn')?.addEventListener('click',()=>{ fieldIds.forEach(id=>{if($(id)) $(id).value='';}); $('summary').textContent='点击生成后将在此处展示走访总结'; editingRecordId=''; $('saveVisitBtn').textContent='保存到走访记录'; clearDraft(); });
 $('saveVisitBtn')?.addEventListener('click',async()=>{ const btn=$('saveVisitBtn'); const old=btn.textContent; btn.disabled=true; btn.textContent='保存中...'; try{ const {data,error}=await withTimeout(supabaseClient.auth.getSession(),5000,'获取登录状态超时'); if(error) throw error; const s=data?.session; if(!s?.user?.id){ window.location.replace('login.html'); return; } const summaryText=$('summary').textContent.trim(); if(!getValue('company')){ alert('请先填写企业名称'); return; } if(!summaryText||summaryText.includes('点击生成后')){ alert('请先生成走访总结'); return; } const formData={}; fieldIds.forEach(id=>formData[id]=getValue(id)); const payload={user_id:s.user.id,company_name:getValue('company'),visit_staff:getValue('visitStaff'),contact_name:getValue('contact'),contact_phone:getValue('phone'),office_address:getValue('address'),basic_info:getValue('basic'),enterprise_needs:getValue('needs'),park_solution:getValue('solution'),summary_text:summaryText,form_data:formData}; let q=supabaseClient.from('visit_records'); const res=editingRecordId?await q.update(payload).eq('id',editingRecordId):await q.insert(payload); if(res.error){ alert('保存失败，请稍后重试。'); return; } alert('已保存到云端走访记录'); clearDraft(); await Promise.all([loadRecent(),loadStats()]); }catch(_){ alert('保存失败，请稍后重试。'); } finally{ btn.disabled=false; btn.textContent=editingRecordId?'更新走访记录':'保存到走访记录'; }});
-document.addEventListener('click',(e)=>{ const btn=e.target.closest('button[data-action]'); if(!btn) return; const a=btn.dataset.action; if(a==='open-profile') $('profileModal')?.classList.add('show'); if(a==='close-profile') $('profileModal')?.classList.remove('show'); if(a==='logout'){ handleLogout(btn); }});
+document.addEventListener('click',(e)=>{ const btn=e.target.closest('button[data-action]'); if(!btn) return; const a=btn.dataset.action; if(a==='open-profile') $('profileModal')?.classList.remove('hidden'); if(a==='close-profile') $('profileModal')?.classList.add('hidden'); if(a==='logout'){ handleLogout(btn); }});
 $('profileAvatarInput')?.addEventListener('change',(e)=>{ const file=e.target.files?.[0]; if(!file) return; const allow=['image/jpeg','image/jpg','image/png','image/webp']; if(!allow.includes(file.type)){ alert('仅支持 JPG、PNG、WEBP 图片'); e.target.value=''; return; } if(file.size>2*1024*1024){ alert('头像文件不能超过 2MB'); e.target.value=''; return; } profileAvatarFile=file; const reader=new FileReader(); reader.onload=()=>{ setProfileAvatarPreview(String(reader.result||''),getAvatarFallbackText(getValue('profileNickname'),getCurrentUser())); }; reader.readAsDataURL(file); });
 async function handleLogout(button){ const t=button.textContent; button.disabled=true; button.textContent='退出中...'; try{ await withTimeout(supabaseClient.auth.signOut({scope:'local'}),5000,'退出登录超时'); }catch(_){} finally{ setCurrentUser(''); window.location.replace('login.html?logged_out=1'); button.disabled=false; button.textContent=t; }}
-$('profileForm')?.addEventListener('submit',async(e)=>{ e.preventDefault(); const btn=$('saveProfileBtn'); const oldText=btn?.textContent||'保存修改'; if(btn){ btn.disabled=true; btn.textContent='保存中...'; } try{ const nickname=getValue('profileNickname'); if(!nickname) return; const {data}=await supabaseClient.auth.getSession(); const s=data?.session; if(!s?.user?.id) return window.location.replace('login.html'); let avatarUrl=(currentProfile&&currentProfile.avatar_url)||''; if(profileAvatarFile){ const ext=(profileAvatarFile.name.split('.').pop()||'jpg').toLowerCase(); const path=`${s.user.id}/avatar-${Date.now()}.${ext}`; const uploadRes=await supabaseClient.storage.from('avatars').upload(path,profileAvatarFile,{upsert:true,contentType:profileAvatarFile.type}); if(uploadRes.error) throw uploadRes.error; const publicRes=supabaseClient.storage.from('avatars').getPublicUrl(path); avatarUrl=publicRes.data?.publicUrl||avatarUrl; } const {error}=await supabaseClient.from('profiles').upsert({id:s.user.id,email:(s.user.email||'').toLowerCase(),nickname,avatar_url:avatarUrl,updated_at:new Date().toISOString()},{onConflict:'id'}); if(error) throw error; const users=loadUsers(); const email=(s.user.email||'').toLowerCase(); users[email]={...(users[email]||{}),nickname,avatar_url:avatarUrl}; localStorage.setItem(STORAGE_USERS,JSON.stringify(users)); currentProfile={nickname,avatar_url:avatarUrl}; refreshAuthUI(); $('profileModal').classList.remove('show'); $('profileAvatarInput').value=''; profileAvatarFile=null; alert('个人资料已更新'); }catch(error){ console.error('保存个人资料失败:',error); alert(`个人资料保存失败：${error?.message||'请稍后重试。'}`); } finally{ if(btn){ btn.disabled=false; btn.textContent=oldText; }} });
+$('profileForm')?.addEventListener('submit',async(e)=>{ e.preventDefault(); const btn=$('saveProfileBtn'); const oldText=btn?.textContent||'保存修改'; if(btn){ btn.disabled=true; btn.textContent='保存中...'; } try{ const nickname=getValue('profileNickname'); if(!nickname) return; const {data}=await supabaseClient.auth.getSession(); const s=data?.session; if(!s?.user?.id) return window.location.replace('login.html'); let avatarUrl=(currentProfile&&currentProfile.avatar_url)||''; if(profileAvatarFile){ const ext=(profileAvatarFile.name.split('.').pop()||'jpg').toLowerCase(); const path=`${s.user.id}/avatar-${Date.now()}.${ext}`; const uploadRes=await supabaseClient.storage.from('avatars').upload(path,profileAvatarFile,{upsert:true,contentType:profileAvatarFile.type}); if(uploadRes.error) throw uploadRes.error; const publicRes=supabaseClient.storage.from('avatars').getPublicUrl(path); avatarUrl=publicRes.data?.publicUrl||avatarUrl; } const {error}=await supabaseClient.from('profiles').upsert({id:s.user.id,email:(s.user.email||'').toLowerCase(),nickname,avatar_url:avatarUrl,updated_at:new Date().toISOString()},{onConflict:'id'}); if(error) throw error; const users=loadUsers(); const email=(s.user.email||'').toLowerCase(); users[email]={...(users[email]||{}),nickname,avatar_url:avatarUrl}; localStorage.setItem(STORAGE_USERS,JSON.stringify(users)); currentProfile={nickname,avatar_url:avatarUrl}; refreshAuthUI(); $('profileModal').classList.add('hidden'); $('profileAvatarInput').value=''; profileAvatarFile=null; alert('个人资料已更新'); }catch(error){ console.error('保存个人资料失败:',error); alert(`个人资料保存失败：${error?.message||'请稍后重试。'}`); } finally{ if(btn){ btn.disabled=false; btn.textContent=oldText; }} });
 });
 </script>
 </body>
