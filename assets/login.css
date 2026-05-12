@@ -20,13 +20,46 @@ body {
   width: 100%;
   overflow: hidden;
   position: relative;
-  background:
-    linear-gradient(90deg, rgba(239,246,255,0.96) 0%, rgba(239,246,255,0.82) 34%, rgba(219,234,254,0.56) 58%, rgba(37,99,235,0.20) 100%),
-    linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(239,246,255,0.20) 48%, rgba(37,99,235,0.16) 100%),
-    var(--login-bg-image);
+}
+
+.login-bg-blur {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--login-bg-image);
   background-size: cover;
   background-position: center center;
+  filter: blur(10px);
+  transform: scale(1.06);
+  opacity: 0.35;
+}
+
+.login-bg-photo {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background-image: var(--login-bg-image);
   background-repeat: no-repeat;
+  background-size: auto 92vh;
+  background-position: 48% center;
+  opacity: 0.72;
+}
+
+.login-bg-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg,
+      rgba(239,246,255,0.96) 0%,
+      rgba(239,246,255,0.82) 35%,
+      rgba(219,234,254,0.58) 58%,
+      rgba(37,99,235,0.24) 100%),
+    linear-gradient(180deg,
+      rgba(255,255,255,0.20) 0%,
+      rgba(239,246,255,0.18) 48%,
+      rgba(37,99,235,0.18) 100%);
 }
 
 .login-page::after {
@@ -38,7 +71,7 @@ body {
   height: 720px;
   border-radius: 50%;
   background: radial-gradient(circle at center, rgba(59,130,246,0.30), rgba(59,130,246,0) 68%);
-  z-index: 1;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -51,7 +84,7 @@ body {
   height: 860px;
   border-radius: 50%;
   background: radial-gradient(circle at center, rgba(37,99,235,0.26), rgba(37,99,235,0) 70%);
-  z-index: 1;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -60,7 +93,7 @@ body {
   top: 34px;
   left: 56px;
   right: 56px;
-  z-index: 3;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -96,7 +129,7 @@ body {
   align-items: center;
   gap: 96px;
   position: relative;
-  z-index: 2;
+  z-index: 5;
 }
 
 .login-brand {
@@ -250,7 +283,7 @@ input:focus {
   opacity: 0.25;
   background-image: radial-gradient(rgba(37,99,235,0.45) 1px, transparent 1px);
   background-size: 14px 14px;
-  z-index: 1;
+  z-index: 3;
 }
 
 .login-footer {
@@ -258,7 +291,7 @@ input:focus {
   left: 56px;
   right: 56px;
   bottom: 32px;
-  z-index: 2;
+  z-index: 5;
   color: rgba(15,47,102,0.58);
   font-size: 14px;
   display: flex;
@@ -323,5 +356,18 @@ input:focus {
     width: 100%;
     padding: 28px 22px;
     border-radius: 24px;
+  }
+
+  .login-bg-photo {
+    background-size: auto 100vh;
+    background-position: center top;
+    opacity: 0.55;
+  }
+
+  .login-bg-mask {
+    background: linear-gradient(180deg,
+      rgba(37,99,235,0.62) 0%,
+      rgba(37,99,235,0.42) 38%,
+      rgba(239,246,255,0.94) 100%);
   }
 }
