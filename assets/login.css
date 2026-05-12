@@ -22,15 +22,15 @@ body {
   overflow: hidden;
   background-image:
     linear-gradient(105deg,
-      rgba(239, 246, 255, 0.90) 0%,
-      rgba(219, 234, 254, 0.76) 44%,
-      rgba(147, 197, 253, 0.44) 72%,
-      rgba(37, 99, 235, 0.30) 100%
+      rgba(239, 246, 255, 0.86) 0%,
+      rgba(219, 234, 254, 0.68) 44%,
+      rgba(147, 197, 253, 0.38) 72%,
+      rgba(37, 99, 235, 0.24) 100%
     ),
     linear-gradient(180deg,
-      rgba(255,255,255,0.16) 0%,
-      rgba(239,246,255,0.10) 52%,
-      rgba(37,99,235,0.14) 100%
+      rgba(255,255,255,0.14) 0%,
+      rgba(239,246,255,0.08) 52%,
+      rgba(37,99,235,0.10) 100%
     ),
     var(--login-bg-image);
   background-size: cover, cover, cover;
@@ -115,7 +115,12 @@ body {
   font-size: 14px;
   font-weight: 700;
 }
-
+.topbar-security {
+  max-width: 42vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .topbar-logo {
   width: 28px;
   height: 28px;
@@ -217,7 +222,7 @@ body {
   border: 1px solid rgba(255,255,255,0.72);
   border-radius: 28px;
   padding: 42px;
-  box-shadow: 0 30px 90px rgba(15,23,42,0.20);
+  box-shadow: 0 28px 82px rgba(15,23,42,0.18);
 }
 
 .tabs {
