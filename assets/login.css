@@ -4,7 +4,7 @@
   --deep-blue: #0f2f66;
   --border: #dbe6f5;
   --text: #0f172a;
-  --park-login-bg: url("../园区侧影.jpg");
+  --login-bg-image: url("../园区侧影.jpg");
 }
 
 * { box-sizing: border-box; }
@@ -27,24 +27,26 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
-  background-image: var(--park-login-bg);
+  background-image: var(--login-bg-image);
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  filter: blur(14px);
-  transform: scale(1.08);
-  opacity: 0.34;
+  filter: blur(10px);
+  transform: scale(1.06);
+  opacity: 0.35;
 }
 
-.login-bg-scene {
+.login-park-scene {
   position: fixed;
   inset: 0;
   z-index: 1;
-  background-image: var(--park-login-bg);
+  background-image: var(--login-bg-image);
   background-repeat: no-repeat;
-  background-size: auto 82vh;
-  background-position: 48% 52%;
-  opacity: 0.76;
+  background-size: auto 92vh;
+  background-position: 48% center;
+  opacity: 0.72;
+  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.85) 22%, rgba(0,0,0,0.95) 70%, rgba(0,0,0,0.40) 100%);
+  mask-image: linear-gradient(90deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.85) 22%, rgba(0,0,0,0.95) 70%, rgba(0,0,0,0.40) 100%);
 }
 
 .login-bg-overlay {
@@ -55,42 +57,29 @@ body {
   background:
     linear-gradient(90deg,
       rgba(239, 246, 255, 0.97) 0%,
-      rgba(239, 246, 255, 0.88) 30%,
-      rgba(219, 234, 254, 0.62) 56%,
-      rgba(37, 99, 235, 0.26) 100%
+      rgba(239,246,255,0.82) 35%,
+      rgba(219,234,254,0.58) 58%,
+      rgba(37,99,235,0.24) 100%
     ),
     linear-gradient(180deg,
-      rgba(255,255,255,0.22) 0%,
-      rgba(239,246,255,0.18) 45%,
-      rgba(37,99,235,0.15) 100%
+      rgba(255,255,255,0.20) 0%,
+      rgba(239,246,255,0.18) 48%,
+      rgba(37,99,235,0.18) 100%
     );
 }
 
-.login-page::after {
-  content: "";
+.login-blue-ribbon {
   position: fixed;
   right: -180px;
   bottom: -220px;
   width: 720px;
   height: 720px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(59,130,246,0.30), rgba(59,130,246,0) 68%);
+  background: radial-gradient(circle, rgba(59,130,246,0.28), rgba(59,130,246,0) 68%);
   z-index: 3;
   pointer-events: none;
 }
 
-.login-page::before {
-  content: "";
-  position: fixed;
-  right: -320px;
-  top: 10%;
-  width: 860px;
-  height: 860px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(37,99,235,0.26), rgba(37,99,235,0) 70%);
-  z-index: 3;
-  pointer-events: none;
-}
 
 .login-topbar {
   position: fixed;
@@ -318,8 +307,7 @@ input:focus {
 
 @media (max-width: 768px) {
   .login-page { overflow-y: auto; min-height: 100vh; }
-  .login-page::before,
-  .login-page::after,
+  .login-blue-ribbon,
   .login-dots,
   .topbar-security,
   .login-footer { display: none; }
@@ -371,7 +359,7 @@ input:focus {
     border-radius: 24px;
   }
 
-  .login-bg-scene {
+  .login-park-scene {
     background-size: auto 100vh;
     background-position: center top;
     opacity: 0.55;
